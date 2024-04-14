@@ -1,32 +1,60 @@
 import logging
 import os
-from logging import Logger, FileHandler, Formatter
+from typing import Optional
+from logging import Logger, Handler, Formatter
 
 class TypeLogger():
     """
-    TypeLogger class
-
-    This class creates a logger for a specific level, and saves logger output
-    in a log file in a log director using a simplified format based on the
-    idea that log levels are stored as different files. The initialized
-    instance calls the log method by default.
+    A class that provides a logging functionality with customizable log levels
+    and log handlers.
 
     Attributes:
         name (str): The name of the logger.
-        logger (Logger): The logger object.
-        file_handler (FileHandler): The file handler object.
-        formatter (Formatter): The formatter object.
+        logger (Logger): The Logger object.
+        handler (Optional[Handler]): The Handler object. Defaults to local
+            FileHandler.
+        formatter (Formatter): The Formatter object.
     
     Methods:
-        __init__(self, name: str) -> None: Initializes the TypeLogger object.
-        __call__(self, message: str) -> None: Calls the log method.
-        _get_logger(self, name: str) -> Logger: Returns a logger object.
-        _get_log_level(self) -> int: Returns the log level.
-        _get_file_handler(self, name: str) -> FileHandler: Returns a file
-            handler object.
-        _get_formatter(self) -> Formatter: Returns a formatter object.
-        _setup_logger(self) -> None: Sets up the logger.
-        log(self, message) -> None: Logs a message using the logger.
+        __init__: Initializes the TypeLogger object.
+            Args:
+                self
+                name (str): The name of the logger.
+                handler (Optional[Handler]): The optional handler object.
+
+        __call__: Calls the log method.
+            Args:
+                self
+                message (str): The message to log.
+
+        _get_logger: Creates a logger object.
+            Args:
+                self
+                name (str): The name of the logger.
+                
+        _get_log_level: Returns the log level from the logger name.
+            Args:
+                self
+                name (str): The name of the logger.
+
+        _get_file_handler: Returns a local file handler object with a file
+            name of the logger's name/level and .log extension.
+            Args:
+                self
+                name (str): The name of the logger.
+
+        _get_formatter: Returns a formatter object.
+
+        _setup_logger: Sets up the logger, setting the level, adding the
+            handler, and setting the formatter.
+            Args:
+                self
+                name (str): The name of the logger.
+
+        log: Logs a message using the logger.
+            Args:
+                self
+                message (str): The message to log.
 
     Example:
         >>>info_logger = TypeLogger("info")
@@ -37,10 +65,10 @@ class TypeLogger():
         Output:
         2024-04-13 23:33:39,228 - Info logger initialized
     """
-    def __init__(self, name: str) -> None:
+    def __init__(self, *, name: str, handler: Optional[Handler] = None) -> None:
         self.name = name
         self.logger = self._get_logger(name)
-        self.file_handler = self._get_file_handler(name)
+        self.handler = handler if handler else self._get_file_handler(name)
         self.formatter = self._get_formatter()
         self._setup_logger()
     
@@ -49,10 +77,7 @@ class TypeLogger():
 
     def _get_logger(self, name: str) -> Logger:
         logger_name: str = f"{name}_logger"
-        logger: Logger = logging.getLogger(logger_name)
-        log_level: int = self._get_log_level(name)
-        logger.setLevel(log_level)
-        return logger
+        return logging.getLogger(logger_name)
     
     def _get_log_level(self) -> int:
 
@@ -63,7 +88,7 @@ class TypeLogger():
             raise ValueError(f"Invalid log level name: {name}")
         return log_level
         
-    def _get_file_handler(self, name: str) -> FileHandler:
+    def _get_file_handler(self, name: str) -> Handler:
         filename: str = f"{name}.log"
         file_path = os.path.join("logs", filename)
         return logging.FileHandler(file_path)
@@ -73,7 +98,9 @@ class TypeLogger():
             "%(asctime)s - %(message)s"
         )
 
-    def _setup_logger(self) -> None:
+    def _setup_logger(self, name: str) -> None:
+        log_level: int = self._get_log_level(name)
+        self.logger.setLevel(log_level)
         self.logger.addHandler(self.file_handler)
         self.file_handler.setFormatter(self.formatter)
 
