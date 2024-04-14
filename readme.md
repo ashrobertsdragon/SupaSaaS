@@ -65,6 +65,8 @@ SupaSaaS includes built-in logging mechanisms for both informational and error l
 
 1. Unit testing
 2. Improve documentation
+3. Add sesssion management features to SupabaseAuth class
+4. Create storage class
 
 ## Contributing
 
