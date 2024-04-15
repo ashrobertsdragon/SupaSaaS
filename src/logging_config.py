@@ -70,7 +70,8 @@ class TypeLogger():
         self.logger = self._get_logger(name)
         self.handler = handler if handler else self._get_file_handler(name)
         self.formatter = self._get_formatter()
-        self._setup_logger()
+        self._setup_logger(name)
+        print(f"{name} logger created")
     
     def __call__(self, message: str) -> None:
         self.log(message)
@@ -90,19 +91,23 @@ class TypeLogger():
         
     def _get_file_handler(self, name: str) -> Handler:
         filename: str = f"{name}.log"
-        file_path = os.path.join("logs", filename)
+        log_path = "logs"
+        os.makedirs(log_path, exist_ok=True)
+
+        file_path = os.path.join(log_path, filename)
+        print(f"{name}_logger created at {file_path}")
         return logging.FileHandler(file_path)
 
     def _get_formatter(self) -> Formatter:
         return logging.Formatter(
-            "%(asctime)s - %(message)s"
+            "%(asctime)s -%(levelname)s:%(message)s"
         )
 
     def _setup_logger(self, name: str) -> None:
-        log_level: int = self._get_log_level(name)
+        log_level: int = self._get_log_level()
         self.logger.setLevel(log_level)
-        self.logger.addHandler(self.file_handler)
-        self.file_handler.setFormatter(self.formatter)
+        self.logger.addHandler(self.handler)
+        self.handler.setFormatter(self.formatter)
 
     def log(self, message) -> None:
         """
