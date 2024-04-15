@@ -10,18 +10,31 @@ from logging_config import TypeLogger
 class SupabaseClient():
     _mono_state: dict = {}
 
+    def _get_env_value(self, key: str) -> str:
+        if isinstance(key, str):
+            try:
+                return os.environ[key]
+            except Exception:
+                raise LookupError(f"Supabase API {key} not found")
+        else:
+            raise TypeError(f"{key} must be string")
+
     def __init__(self) -> None:
         self.__dict__ = self._mono_state
 
-        self.url: str = os.environ["SUPABASE_URL"]
+        try:
+            self.url: str = self._get_env_value("SUPABASE_URL")
+        except Exception:
+            raise LookupError("Supabase API URL not found")
         
         if "default_client" not in self.__dict__:
-            key: str = os.environ["SUPABASE_KEY"]
+            key: str = self._get_env_value("SUPABASE_KEY")
             self.default_client: Client = create_client(self.url, key)
         if not self.error_logger:
             self.error_logger = TypeLogger("error")
         if not self.info_logger:
             self.info_logger = TypeLogger("info")
+
     
     def log_info(self, action: str, response: dict) -> None:
         """
@@ -225,7 +238,7 @@ class SupabaseDB(SupabaseClient):
         super().__init__()
 
         if "service_client" not in self.__dict__:
-            service_role: str = os.environ["SUPABASE_SERVICE_ROLE"]
+            service_role: str = super()._get_env_value("SUPABASE_SERVICE_ROLE")
             self.service_client: Client = create_client(self.url, service_role)
     
     def _select_client(self, use_service_role: bool = False) -> Client:
