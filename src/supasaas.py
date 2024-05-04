@@ -675,15 +675,11 @@ class SupabaseDB(SupabaseClient):
 
         try:
             match_name, match_value = self._extract_match(match)
-            response = db_client.table(table_name).select(*columns).eq(match_name, match_value).execute()
+            res = db_client.table(table_name).select(*columns).eq(match_name, match_value).execute()
 
-            if response and response.data:
-                if isinstance(response.data, list):
-                    return response.data
-                else:
-                    raise TypeError("Returned data was not a list")
-            else:
-              raise ValueError("Response has no data")
+            if res and res.data:
+                self._validate_dict(res.data)
+                return res.data
         except Exception as e:
             self.log_error(e, action, columns=columns, match=match)
             return {}
