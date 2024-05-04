@@ -599,7 +599,7 @@ class SupabaseDB(SupabaseClient):
     @SupabaseClient.validate_arguments
     def select_row(
         self, *, table_name: str, match: dict, columns: list[str] = ["*"]
-    ) -> dict:
+    ) -> list[dict]:
         """
         Retrieves a row or columns from a table based on a matching condition.
 
@@ -614,12 +614,15 @@ class SupabaseDB(SupabaseClient):
                 from the row. Defaults to ["*"], which retrieves all columns.
 
         Returns:
-            dict: A dictionary representing the retrieved row. If no row is
-                found matching the condition, an empty dictionary is returned.
+            list[dict]: A list of dictionaries representing the retrieved row
+                or rows. If no row is found matching the condition, an empty
+                dictionary is returned.
 
         Raises:
-            ValueError: If the match argument is not a dictionary, or
-                table_name is not a string.
+            IndexError: If the match dictionary has more than one key-value
+                pair.
+            TypeError: If the response returned was not a list.
+            ValueError: If there was no response returned or no data object.
             Exception: If there is an error while retrieving the row, an
                 exception will be raised and logged.
 
@@ -637,21 +640,18 @@ class SupabaseDB(SupabaseClient):
         action = "select"
 
         try:
-            self._validate_table(table_name)
-            self._validate_dict(match, "match")
-            
-        except ValueError as e:
-            self.log_error(e, action, match=match, table_name=table_name)
+            if len(match) > 1:
+                raise IndexError("Match dictionary should have only one key-value pair")
+            match_name, match_value = list(match.items())[0]
+            response = db_client.table(table_name).select(*columns).eq(match_name, match_value).execute()
 
-        match_name, match_value = next(iter(match.items()))
-
-        try:
-            response = db_client.table(table_name) \
-                .select(*columns) \
-                .eq(match_name, match_value) \
-                .execute()
-            self.log_info(action, response)
-            return response.data if response.data else {}
+            if response and response.data:
+                if isinstance(response.data, list):
+                    return response.data
+                else:
+                    raise TypeError("Returned data was not a list")
+            else:
+              raise ValueError("Response has no data")
         except Exception as e:
             self.log_error(e, action, columns=columns, match=match)
             return {}
