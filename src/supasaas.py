@@ -1,11 +1,16 @@
-
+import inspect
 import os
+from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
+from functools import wraps
 
 from gotrue.types import AuthResponse, UserResponse
 from supabase import create_client, Client
 
 from logging_config import LoggerManager
 
+
+T = TypeVar('T')
+P = ParamSpec('P')
 
 class SupabaseClient():
     _mono_state: dict = {}
@@ -106,6 +111,131 @@ class SupabaseClient():
         error_message += "\nException: %s"
 
         self.error_logger(error_message, str(e))
+
+    @classmethod
+    def _validate_type(cls, value: Optional[any], *, name: str, is_type: type, allow_none: bool) -> None:
+        """
+        Validate the type of a value.
+
+        Args:
+            value (Optional[any]): The value to be validated. May be any time,
+                or None.
+            name (str): The name of the argument or parameter.
+            is_type (type): The expected type of the value.
+            allow_none (bool): Whether None is allowed as a value.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the value is None and allow_none is False or if
+                is_type is None.
+            TypeError:  If the value is not an instance of the expected type.
+
+        """
+        if value is None:
+            if allow_none:
+                return
+            else:
+                raise ValueError(f"{name} must have value")
+        if is_type is None:
+            raise ValueError("is_type must not be None")
+        if not isinstance(value, is_type):
+            raise TypeError(f"{name} must be {is_type.__name__}")
+
+    @classmethod
+    def _validate_dict(cls, value: any, name: str) -> None:
+        cls._validate_type(value, name=name, is_type=dict)
+
+    @classmethod    
+    def _validate_list(cls, value: any, name: str) -> None:
+        cls._validate_type(value, name=name, is_type=list)
+
+    @classmethod    
+    def _validate_string(cls, value: any, name: str) -> None:
+        cls._validate_type(value, name=name, is_type=str)
+
+    @classmethod
+    def _validate_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> None:
+        """
+        Validate the value of a parameter.
+
+        Args:
+            param_value (Optional[any]): The value of the parameter. It can be
+                any type or None.
+            param_name (str): The name of the parameter.
+            param_type (type): The expected type of the parameter.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the param_value is None and the param_type is not
+                Optional.
+            TypeError: If the param_value is not an instance of the expected
+                param_type.
+        """
+        origin_type = get_origin(param_type)
+        check_type = origin_type if origin_type is not Optional else get_args(param_type)[0]
+        none_bool = (origin_type is Optional)   
+        cls._validate_type(param_value, name=param_name, is_type=check_type, allow_none=none_bool)
+
+    @staticmethod
+    def validate_arguments(func: Callable[P, T]) -> Callable[P, T]:
+        """
+        Validate the arguments of a function based on their type annotations.
+
+        Args:
+            func (Callable[P, T]): The function to be decorated.
+
+        Returns:
+            Callable[P, T]: The decorated function.
+
+        Example:
+            @validate_arguments
+            def my_function(arg1: int, arg2: str) -> bool:
+                ...
+
+        The 'validate_arguments' decorator validates the arguments of a
+        function based on their type annotations. It uses the 'get_type_hints'
+        function from the 'typing' module to retrieve the type hints of the
+        function parameters.
+
+        The decorator works by creating a wrapper function that performs the
+        argument validation before calling the original function. It uses the
+        'inspect' module to get the signature of the function and bind the
+        arguments to their corresponding parameters.
+
+        For each argument, the decorator checks if its value matches the
+        expected type based on the type annotation. If the value is not of the
+        expected type, a 'TypeError' is raised.
+
+        The decorator can be used by applying the '@validate_arguments'
+        decorator to a function definition. This will enable argument 
+        validation for that function.
+
+        Note: When uses in a child class, the decorator becomes
+        '@SupabaseClient.validate_arguments' as decorators are not inherited.
+
+        Note: The 'validate_arguments' decorator only validates the types of
+        the arguments. It does not perform any other form of validation or 
+        modification of the arguments.
+
+        """
+        type_hints = get_type_hints(func)
+
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            signature = inspect.signature(func)
+            bound_args = signature.bind_partial(self, *args, **kwargs)
+
+            bound_args_arguments = {k: v for k, v in bound_args.arguments.items() if k != 'self'}
+            for param_name, param_value in bound_args_arguments.items():
+                param_type = type_hints[param_name]
+                self._validate_param_value(param_value, param_name, param_type)
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
 class SupabaseAuth(SupabaseClient):
     def __init__(self) -> None:
