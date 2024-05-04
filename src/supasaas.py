@@ -240,6 +240,7 @@ class SupabaseClient():
 class SupabaseAuth(SupabaseClient):
     def __init__(self) -> None:
         super().__init__()
+
     def sign_up(self, *, email: str, password: str) -> AuthResponse:
         """
         Signs up a user with the provided email and password.
@@ -259,11 +260,10 @@ class SupabaseAuth(SupabaseClient):
             sign_up(email="example@example.com", password="password123")
         """
         try:
-            response = self.default_client.auth.sign_up({
+            return self.default_client.auth.sign_up({
                 "email": email,
                 "password": password,
             })
-            return response
         except Exception as e:
             action = "signup"
             self.log_error(e, action, email=email)
@@ -288,11 +288,10 @@ class SupabaseAuth(SupabaseClient):
             sign_in(email="example@example.com", password="password123")
         """
         try:
-            data = self.default_client.auth.sign_in_with_password({
+            return self.default_client.auth.sign_in_with_password({
                 "email": email,
                 "password": password
             })
-            return data
         except Exception as e:
             action = "login"
             self.log_error(e, action, email=email)
@@ -358,8 +357,7 @@ class SupabaseAuth(SupabaseClient):
             update_user(updates={"name": "John", "age": 30})
         """
         try:
-            data = self.default_client.auth.update_user(updates)
-            return data
+            return self.default_client.auth.update_user(updates)
         except Exception as e:
             action = "update user"
             self.log_error(e, action, updates=updates)
