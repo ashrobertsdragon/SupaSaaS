@@ -707,7 +707,6 @@ class SupabaseDB(SupabaseClient):
         db_client = self._select_client()
         action = "update"
 
-
         try:
             match_name, match_value = self._extract_match(match)
             res = db_client.table(table_name).update(info).eq(match_name, match_value).execute()
@@ -720,3 +719,65 @@ class SupabaseDB(SupabaseClient):
             log="Data is the same"
             self.log_info(action, res, info=info, log=log)
             return False
+
+    @SupabaseClient.validate_arguments
+    def find_row(self, *, table_name: str, date_column: str, within_period: int, columns: list[str] = ["*"]) -> dict:
+        """
+        Retrieves a row from a table based on a matching condition.
+
+        Args:
+            table_name (str): The name of the table to retrieve the row from.
+            date_column (str): The name of a column with a date format to be
+                compared against.
+            within_period (int): The range of days against which to check for
+                a row.
+            columns (list[str], optional): A list of column names to retrieve 
+                from the row. Defaults to ["*"], which retrieves all columns.
+
+        Returns:
+            dict: A dictionary representing the retrieved row or rows. If no
+                row is found matching the condition, an empty dictionary is
+                returned.
+
+        Raises:
+            Exception: If there is an error while retrieving the row, an
+                exception will be raised and logged.
+
+        Example:
+            supabase_db = SupabaseDB()
+            result = supabase_db.find_row(
+                table_name="users",
+                match_column="age",
+                within_period=30,
+                columns=["name", "age", "email"]
+            )
+            print(result)
+        """
+        db_client = self._select_client()
+        action: str = "find row"
+
+        try:
+            response = db_client.table(table_name).select(columns).lte(date_column, within_period).execute()
+        except Exception as e:
+            self.log_error(
+                e, action,
+                table_name=table_name,
+                match_column=date_column,
+                within_period=within_period,
+                columns=columns
+            )
+            return {}
+        
+        if response and response.data:
+            try:
+                self._validate_dict(response.data)
+                return response.data
+            except Exception as e:
+                self.log_error(
+                    e, action,
+                    table_name=table_name,
+                    date_column=date_column,
+                    within_period=within_period,
+                    columns=columns
+                )
+                return {}
