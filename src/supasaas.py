@@ -566,19 +566,34 @@ class SupabaseDB(SupabaseClient):
 
     @classmethod
     def _extract_match(cls, match: dict) -> tuple[str, str]:
+        """
+        Checks the match dictionary for correct data and then extracts it.
+
+        Args:
+            match (dict): The dictionary with a key and value to be extracted.
+        
+        Returns:
+            key (str): The key of the key-value pair.
+            value (str): The value of the key-value pair.
+
+        Raises:
+            IndexError: If the dictionary is empty or has more than one key-
+                value pair.
+            KeyError: If the key or value is not a string.
+        """
         try:
             if len(match.keys()) != 1:
-                raise ValueError("Match dictionary must have one key-value pair")
+                raise IndexError("Match dictionary must have one key-value pair")
             for key, value in match.items():
                 if not isinstance(key, str):
                     raise KeyError(f"{key} must be a string")
                 if not isinstance(value, str):
                     raise KeyError(f"Value for filter '{key}' must be a string")
-        except KeyError as e:
+        except Exception as e:
             cls.log_error(e, match=match)
 
-        match_name, match_value = list(match.items())[0]
-        return match_name, match_value
+        key, value = list(match.items())[0]
+        return key, value
 
     @SupabaseClient.validate_arguments
     def insert_row(
