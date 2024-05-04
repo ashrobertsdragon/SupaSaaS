@@ -548,7 +548,7 @@ class SupabaseDB(SupabaseClient):
 
     @SupabaseClient.validate_arguments
     def insert_row(
-        self, *, table_name: str, updates: dict, use_service_role: bool = False
+        self, *, table_name: str, data: dict, use_service_role: bool = False
     ) -> bool:
         """
         Inserts a row into a table.
@@ -565,11 +565,10 @@ class SupabaseDB(SupabaseClient):
               authenticated user. Defaults to False.
 
         Returns:
-            bool: True if the update was successful, False otherwise.
+            bool: True if the insert was successful, False otherwise.
 
         Raises:
-            ValueError: If the updates argument is not a dictionary, or
-                table_name is not a string.
+            ValueError: If the response did not return a populated data list.
             Exception: If there is an error while inserting the row, an 
                 exception will be raised and logged.
 
@@ -586,21 +585,16 @@ class SupabaseDB(SupabaseClient):
             )
         """
         db_client = self._select_client(use_service_role)
-        action = "insert"
+        action: str = "insert"
 
         try:
-            self._validate_table(table_name)
-            self._validate_dict(updates, "updates")
-        except ValueError as e:
-            self.log_error(e, action, updates=updates, table_name=table_name)
-
-        try:
-            response = db_client.table(table_name).insert(updates).execute()
-            self.log_info(action, response)
-            return True
+            response = db_client.table(table_name).insert(data).execute()
+            if not response.data:
+                raise ValueError("Response has no data")
         except Exception as e:
-            self.log_error(e, action, updates=updates, table_name=table_name)
+            self.log_error(e, action, data=data, table_name=table_name)
             return False
+        return True
 
     @SupabaseClient.validate_arguments
     def select_row(
