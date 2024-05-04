@@ -640,7 +640,7 @@ class SupabaseDB(SupabaseClient):
         action = "select"
 
         try:
-            if len(match) > 1:
+            if len(match.keys()) != 1:
                 raise IndexError("Match dictionary should have only one key-value pair")
             match_name, match_value = list(match.items())[0]
             response = db_client.table(table_name).select(*columns).eq(match_name, match_value).execute()
@@ -655,65 +655,6 @@ class SupabaseDB(SupabaseClient):
         except Exception as e:
             self.log_error(e, action, columns=columns, match=match)
             return {}
-
-    @SupabaseClient.validate_arguments
-    def select_rows(
-            self, *, table_name:str, matches:dict, columns:list[str]=["*"]
-        ) -> list[dict]:
-        """
-        Selects rows from a table based on matching conditions.
-
-        Args:
-            table_name (str): The name of the table to select rows from.
-            matches (dict): A dictionary representing the matching conditions.
-                The keys should be column names and the values should be the 
-                corresponding values to match.
-            columns (list[str], optional): A list of column names to retrieve
-                from the rows. Defaults to ["*"], which retrieves all columns.
-
-        Returns:
-            list[dict]: A list of dictionaries representing the selected rows.
-                If no rows are found matching the conditions, an empty list is
-                returned.
-
-        Raises:
-            ValueError: If the matches argument is not a dictionary or if any
-                value in the matches dictionary is not a list, or if
-                table_name is not a string.
-            Exception: If there is an error while selecting the rows, an
-                exception will be raised and logged.
-
-        Example:
-            supabase_db = SupabaseDB()
-            result = supabase_db.select_rows(
-                table_name="users",
-                matches={"name": ["John Doe"], "age": [30, 40]},
-                columns=["name", "age", "email"]
-            )
-        """
-        db_client = self._select_client()
-        action = "select"
-        
-        try:
-            self._validate_table(table_name)
-            self._validate_dict(matches, "match")
-            for key, value in matches.items():
-                if not isinstance(value, list):
-                    raise ValueError(f"Value for filter '{key}' must be a list")
-        except ValueError as e:
-            self.log_error(e, action,matches=matches, table_name=table_name)
-
-            
-        try:
-            response = db_client.table(table_name) \
-                .select(*columns) \
-                .in_(matches) \
-                .execute()
-            self.log_info(action, response)
-            return response.data if response.data else [{}]
-        except Exception as e:
-            self.log_error(e, action, columns=columns, matches=matches)
-            return [{}]
 
     @SupabaseClient.validate_arguments
     def update_row(self, *, table_name: str, info: dict, match: dict) -> bool:
