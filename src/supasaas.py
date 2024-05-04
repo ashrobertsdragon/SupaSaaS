@@ -4,7 +4,7 @@ import os
 from gotrue.types import AuthResponse, UserResponse
 from supabase import create_client, Client
 
-from logging_config import TypeLogger
+from logging_config import LoggerManager
 
 
 class SupabaseClient():
@@ -21,7 +21,9 @@ class SupabaseClient():
 
     def __init__(self) -> None:
         self.__dict__ = self._mono_state
-
+        self.error_logger = LoggerManager.get_error_logger()
+        self.info_logger = LoggerManager.get_info_logger()
+        
         try:
             self.url: str = self._get_env_value("SUPABASE_URL")
         except Exception:
@@ -30,10 +32,7 @@ class SupabaseClient():
         if "default_client" not in self.__dict__:
             key: str = self._get_env_value("SUPABASE_KEY")
             self.default_client: Client = create_client(self.url, key)
-        if not self.error_logger:
-            self.error_logger = TypeLogger("error")
-        if not self.info_logger:
-            self.info_logger = TypeLogger("info")
+
 
     
     def log_info(self, action: str, response: dict) -> None:
