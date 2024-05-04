@@ -232,16 +232,16 @@ class SupabaseClient():
         modification of the arguments.
 
         """
-        type_hints = get_type_hints(func)
+        type_hints: dict = get_type_hints(func)
 
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             signature = inspect.signature(func)
-            bound_args = signature.bind_partial(self, *args, **kwargs)
+            bound_args = signature.bind_partial(*args, **kwargs)
 
-            bound_args_arguments = {k: v for k, v in bound_args.arguments.items() if k != 'self'}
+            bound_args_arguments: dict = {k: v for k, v in bound_args.arguments.items() if k != 'self'}
             for param_name, param_value in bound_args_arguments.items():
-                param_type = type_hints[param_name]
+                param_type: type = type_hints[param_name]
                 self._validate_param_value(param_value, param_name, param_type)
             return func(self, *args, **kwargs)
 
