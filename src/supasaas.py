@@ -363,6 +363,157 @@ class SupabaseAuth(SupabaseClient):
             self.log_error(e, action, updates=updates)
             raise
 
+class SupabaseStorage(SupabaseClient):
+    """
+    Subclass of the 'SupabaseClient' class for interacting with the Supabase
+    storage service via API.
+    """
+    @SupabaseClient.validate_arguments
+    def upload_file(self, bucket: str, upload_path: str, file_content: bytes, file_mimetype: str) -> bool:
+        """
+        Upload a file to the specified bucket.
+
+        Args:
+            bucket (str): The name of the bucket.
+            upload_path (str): The path where the file will be uploaded.
+            file_content (bytes): The content of the file to be uploaded.
+            file_mimetype (str): The mimetype of the file.
+
+        Returns:
+            bool: True if the file is successfully uploaded, False otherwise.
+
+        Raises:
+            Exception: If an error occurs during the process.
+
+        Example:
+            file_content = file.read()
+            upload_file(
+              "my_bucket",
+              "path/to/file.txt", file_content, "text/plain")
+        """
+        action: str = "upload file"
+        try:
+            self.default_client.storage.from_(bucket).upload(
+                path=upload_path,
+                file=file_content,
+                file_options={"content-type": file_mimetype}
+            )
+        except Exception as e:
+            self.log_error(
+                e, action, 
+                upload_path=upload_path,
+                file_mimetype=file_mimetype
+            )
+            return False
+        return True
+    
+    @SupabaseClient.validate_arguments
+    def delete_file(self, bucket: str, file_path: str) -> bool:
+        """
+        Delete a file from the specified bucket.
+
+        Args:
+            bucket (str): The name of the bucket.
+            file_path (str): The path of the file to be deleted.
+
+        Returns:
+            bool: True if the file is successfully deleted, False otherwise.
+
+        Raises:
+            Exception: If an error occurs during the process.
+
+        Example:
+            delete_file("my_bucket", "path/to/file.txt")
+        """
+        action: str = "delete file"
+        try:
+            self.default_client.storage.from_(bucket).remove(file_path)
+        except Exception as e:
+            self.log_error(
+                e, action, 
+                file_path=file_path
+            )
+            return False
+        success: str = "File deleted"
+        self.log_info(action, success)
+        return True
+
+    @SupabaseClient.validate_arguments
+    def list_files(self, bucket: str, folder: Optional[str] = None) -> list:
+        """
+        List files or folders in a specified bucket. If the folder argument is
+        provided, the method will list the files in the specificed folder in 
+        the bucket.
+
+        Args:
+            bucket (str): The name of the bucket.
+            folder (Optional[str], optional): The folder within the bucket to
+                list files from. Defaults to None.
+
+        Returns:
+            list: A list of the files and folders in the specified bucket or
+                folder.
+
+        Raises:
+            Exception: If an error occurs during the process.
+
+        Example:
+            files = list_files("my_bucket", folder="path/to/folder")
+        """
+        action: str = "list files"
+        try:
+            if folder:
+                response = self.default_client.storage.from_(bucket).list(folder)
+            else:
+                response = self.default_client.storage.from_(bucket).list()
+        except Exception as e:
+            self.log_error(e, action, bucket=bucket)
+            return []
+        try:
+            self._validate_list(response, name="response")
+            return response
+        except Exception as e:
+            self.log_error(e, action, bucket=bucket)
+            return []
+        
+    @SupabaseClient.validate_arguments
+    def create_signed_url(self, bucket: str, download_path: str, *, expires_in: Optional[int] = 3600) -> str:
+        """
+        Create a signed URL for downloading a file from the specified bucket
+        and path.
+
+        Args:
+            bucket (str): The name of the bucket where the file is stored.
+            download_path (str): The path of the file to be downloaded.
+            expires_in (Optional[int], optional): The expiration time of the
+                signed URL in seconds. Defaults to 3600.
+
+        Returns:
+            str: The signed URL for downloading the file.
+
+        Raises:
+            Exception: If an error occurs during the process.
+
+        Example:
+            signed_url = create_signed_url(
+                "my_bucket",
+                "path/to/file.txt",
+                expires_in=3600
+            )
+        """
+        action: str = "create signed url"
+        
+        try:
+            response = self.default_client.storage.from_(bucket).create_signed_url(download_path, expires_in=expires_in)
+            self._validate_string(response, name="response")
+            return response
+        except Exception as e:
+            self.log_error(
+                e, action,
+                download_path=download_path,
+                expires_in=expires_in
+            )
+            return ""
 
 class SupabaseDB(SupabaseClient):
     def __init__(self) -> None:
