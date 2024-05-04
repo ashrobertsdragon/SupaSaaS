@@ -128,41 +128,39 @@ class SupabaseClient():
         Validate the type of a value.
 
         Args:
-            value (Optional[any]): The value to be validated. May be any time,
+            value (Optional[any]): The value to be validated. May be any type,
                 or None.
             name (str): The name of the argument or parameter.
             is_type (type): The expected type of the value.
             allow_none (bool): Whether None is allowed as a value.
 
-        Returns:
-            None
-
         Raises:
             ValueError: If the value is None and allow_none is False or if
                 is_type is None.
             TypeError:  If the value is not an instance of the expected type.
-
         """
         if value is None:
-            if allow_none:
-                return
-            else:
+            if not allow_none:
                 raise ValueError(f"{name} must have value")
-        if is_type is None:
-            raise ValueError("is_type must not be None")
-        if not isinstance(value, is_type):
-            raise TypeError(f"{name} must be {is_type.__name__}")
+        else:
+            if is_type is None:
+                raise ValueError("is_type must not be None")
+            if not isinstance(value, is_type):
+                raise TypeError(f"{name} must be {is_type.__name__}")
 
     @classmethod
     def _validate_dict(cls, value: any, name: str) -> None:
+        """Validate a dictionary"""
         cls._validate_type(value, name=name, is_type=dict)
 
     @classmethod    
     def _validate_list(cls, value: any, name: str) -> None:
+        """Validate a list"""
         cls._validate_type(value, name=name, is_type=list)
 
     @classmethod    
     def _validate_string(cls, value: any, name: str) -> None:
+        """Validate a string"""
         cls._validate_type(value, name=name, is_type=str)
 
     @classmethod
