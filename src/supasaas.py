@@ -775,7 +775,10 @@ class SupabaseDB(SupabaseClient):
         action: str = "find row"
 
         try:
-            response = db_client.table(table_name).select(columns).lte(date_column, within_period).execute()
+            res = db_client.table(table_name).select(columns).lte(date_column, within_period).execute()
+            if res and res.data:
+                self._validate_dict(res.data)
+                return res.data
         except Exception as e:
             self.log_error(
                 e, action,
@@ -785,17 +788,3 @@ class SupabaseDB(SupabaseClient):
                 columns=columns
             )
             return {}
-        
-        if response and response.data:
-            try:
-                self._validate_dict(response.data)
-                return response.data
-            except Exception as e:
-                self.log_error(
-                    e, action,
-                    table_name=table_name,
-                    date_column=date_column,
-                    within_period=within_period,
-                    columns=columns
-                )
-                return {}
