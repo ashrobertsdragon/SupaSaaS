@@ -101,8 +101,9 @@ class SupabaseClient():
             )
         """
         error_message = self.create_error_message(action, **kwargs)
-        error_message += f"\nException: {str(e)}"
-        self.error_logger(error_message)
+        error_message += "\nException: %s"
+
+        self.error_logger(error_message, str(e))
 
 class SupabaseAuth(SupabaseClient):
     def __init__(self) -> None:
