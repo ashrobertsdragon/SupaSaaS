@@ -375,7 +375,7 @@ class SupabaseDB(SupabaseClient):
             self.service_client: Client = create_client(self.url, service_role)
             if self.service_client:
                 self.log_info(action="Initialized Supabase service client")
-    
+
     def _select_client(self, use_service_role: bool = False) -> Client:
         """
         Selects the appropriate Supabase client.
@@ -396,22 +396,8 @@ class SupabaseDB(SupabaseClient):
             action = "accessing client"
             self.log_error(e, action)
             return None
-    
-    def _validate_type(self, value:any, *, name:str, is_type:type):
-        if not value:
-            raise ValueError(f"{name} must have value")
-        if not isinstance(value, is_type):
-          raise ValueError(f"{name} must be {is_type.__name__}")
-    
-    def _validate_string(self, value:any, name:str):
-        self._validate_type(value, name=name, is_type=str)
-    
-    def _validate_dict(self, value:any, name:str):
-        self._validate_type(value, name=name, is_type=dict)
-    
-    def _validate_table(self, value:any):
-        self._validate_string(value, name="table_name")
 
+    @SupabaseClient.validate_arguments
     def insert_row(
         self, *, table_name: str, updates: dict, use_service_role: bool = False
     ) -> bool:
@@ -466,7 +452,8 @@ class SupabaseDB(SupabaseClient):
         except Exception as e:
             self.log_error(e, action, updates=updates, table_name=table_name)
             return False
-    
+
+    @SupabaseClient.validate_arguments
     def select_row(
         self, *, table_name: str, match: dict, columns: list[str] = ["*"]
     ) -> dict:
@@ -525,7 +512,8 @@ class SupabaseDB(SupabaseClient):
         except Exception as e:
             self.log_error(e, action, columns=columns, match=match)
             return {}
-        
+
+    @SupabaseClient.validate_arguments
     def select_rows(
             self, *, table_name:str, matches:dict, columns:list[str]=["*"]
         ) -> list[dict]:
@@ -584,6 +572,7 @@ class SupabaseDB(SupabaseClient):
             self.log_error(e, action, columns=columns, matches=matches)
             return [{}]
 
+    @SupabaseClient.validate_arguments
     def update_row(self, *, table_name: str, info: dict, match: dict) -> bool:
         """
         Updates a row in the table with data when the row matches a column.
