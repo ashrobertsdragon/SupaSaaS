@@ -546,6 +546,22 @@ class SupabaseDB(SupabaseClient):
             self.log_error(e, action)
             return None
 
+    @classmethod
+    def _extract_match(cls, match: dict) -> tuple[str, str]:
+        try:
+            if len(match.keys()) != 1:
+                raise ValueError("Match dictionary must have one key-value pair")
+            for key, value in match.items():
+                if not isinstance(key, str):
+                    raise KeyError(f"{key} must be a string")
+                if not isinstance(value, str):
+                    raise KeyError(f"Value for filter '{key}' must be a string")
+        except KeyError as e:
+            cls.log_error(e, match=match)
+
+        match_name, match_value = list(match.items())[0]
+        return match_name, match_value
+
     @SupabaseClient.validate_arguments
     def insert_row(
         self, *, table_name: str, data: dict, use_service_role: bool = False
@@ -640,9 +656,7 @@ class SupabaseDB(SupabaseClient):
         action = "select"
 
         try:
-            if len(match.keys()) != 1:
-                raise IndexError("Match dictionary should have only one key-value pair")
-            match_name, match_value = list(match.items())[0]
+            match_name, match_value = self._extract_match(match)
             response = db_client.table(table_name).select(*columns).eq(match_name, match_value).execute()
 
             if response and response.data:
@@ -693,22 +707,16 @@ class SupabaseDB(SupabaseClient):
         db_client = self._select_client()
         action = "update"
 
-        try:
-            self._validate_table(table_name)
-            self._validate_dict(match, "match")
 
-            for key, value in match.items():
-                if not isinstance(value, list):
-                    raise ValueError(f"Value for filter '{key}' must be a list")
-        except ValueError as e:
-            self.log_error(e, action,match=match, table_name=table_name)
-
-        match_name, match_value = next(iter(match.items()))
         try:
-            response = db_client.table(table_name).update(info) \
-                .eq(match_name, match_value).execute()
-            self.log_info(action, response)
-            return True
+            match_name, match_value = self._extract_match(match)
+            res = db_client.table(table_name).update(info).eq(match_name, match_value).execute()
         except Exception as e:
             self.log_error(e, action, updates=info, match=match)
+            return False
+        if res.data:
+            return True
+        else:
+            log="Data is the same"
+            self.log_info(action, res, info=info, log=log)
             return False
