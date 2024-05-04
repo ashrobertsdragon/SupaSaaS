@@ -622,8 +622,8 @@ class SupabaseDB(SupabaseClient):
         action: str = "insert"
 
         try:
-            response = db_client.table(table_name).insert(data).execute()
-            if not response.data:
+            res = db_client.table(table_name).insert(data).execute()
+            if not res.data:
                 raise ValueError("Response has no data")
         except Exception as e:
             self.log_error(e, action, data=data, table_name=table_name)
