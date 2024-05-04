@@ -36,7 +36,7 @@ class SupabaseClient():
                 self.log_info(action="Initialized Supabase default client")
 
     
-    def log_info(self, action: str, response: dict) -> None:
+    def log_info(self, action: str, *args, **kwargs) -> None:
         """
         Log a Supabase response with the info logger.
 
@@ -48,7 +48,9 @@ class SupabaseClient():
             log_info("select", {"email": "example@example.com", "name": "John"})
         
         """
-        self.info_logger(f"{action} returned {response}")
+        all_args: str = ", ".join(*args)
+        all_kwargs: str = ', '.join(f"{k}={v}" for k, v in kwargs.items())
+        self.info_logger(f"{action} returned {all_args}{all_kwargs}")
 
     def create_error_message(self, action: str, **kwargs) -> str:
         """
