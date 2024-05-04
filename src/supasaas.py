@@ -13,9 +13,18 @@ T = TypeVar('T')
 P = ParamSpec('P')
 
 class SupabaseClient():
+    """
+    Parent class for initializing the client to interact with Supabse API and
+    methods to be inherited by child classes such as logging and validation.
+
+    Attributes:
+        _mono_state (dict): A dictionary representing the shared state of all
+            instances of the class.
+    """
     _mono_state: dict = {}
 
     def _get_env_value(self, key: str) -> str:
+        """Retrieves the value of an environment variable"""
         if isinstance(key, str):
             try:
                 return os.environ[key]
@@ -25,6 +34,7 @@ class SupabaseClient():
             raise TypeError(f"{key} must be string")
 
     def __init__(self) -> None:
+        """Initiate one and only copy of the client and assign loggers."""
         self.__dict__ = self._mono_state
         self.error_logger = LoggerManager.get_error_logger()
         self.info_logger = LoggerManager.get_info_logger()
@@ -516,7 +526,15 @@ class SupabaseStorage(SupabaseClient):
             return ""
 
 class SupabaseDB(SupabaseClient):
+    """
+    Subclass of the 'SupabaseClient' for connecting to Postgres database via
+    Supabase API and perform common SQL tasks necessary for SaaS management.
+    """
     def __init__(self) -> None:
+        """
+        Initializes one and only one copy of client with service role
+        credentials and inherits default_client from 'SupabaseClient'.
+        """
         super().__init__()
 
         if "service_client" not in self.__dict__:
