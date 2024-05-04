@@ -23,7 +23,7 @@ class SupabaseClient():
         self.__dict__ = self._mono_state
         self.error_logger = LoggerManager.get_error_logger()
         self.info_logger = LoggerManager.get_info_logger()
-        
+
         try:
             self.url: str = self._get_env_value("SUPABASE_URL")
         except Exception:
@@ -32,7 +32,8 @@ class SupabaseClient():
         if "default_client" not in self.__dict__:
             key: str = self._get_env_value("SUPABASE_KEY")
             self.default_client: Client = create_client(self.url, key)
-
+            if self.default_client:
+                self.log_info(action="Initialized Supabase default client")
 
     
     def log_info(self, action: str, response: dict) -> None:
@@ -239,6 +240,8 @@ class SupabaseDB(SupabaseClient):
         if "service_client" not in self.__dict__:
             service_role: str = super()._get_env_value("SUPABASE_SERVICE_ROLE")
             self.service_client: Client = create_client(self.url, service_role)
+            if self.service_client:
+                self.log_info(action="Initialized Supabase service client")
     
     def _select_client(self, use_service_role: bool = False) -> Client:
         """
