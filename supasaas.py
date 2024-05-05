@@ -1,9 +1,9 @@
 import inspect
 import logging
-import os
 from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
 from functools import wraps
 
+import decouple
 from gotrue.types import AuthResponse, UserResponse
 from supabase import create_client, Client
 
@@ -26,7 +26,7 @@ class SupabaseClient():
         """Retrieves the value of an environment variable"""
         if isinstance(key, str):
             try:
-                return os.environ[key]
+                return decouple(key)
             except Exception:
                 raise LookupError(f"Supabase API {key} not found")
         else:
