@@ -160,7 +160,7 @@ class SupabaseClient():
         cls._validate_type(value, name=name, is_type=str)
 
     @classmethod
-    def _validate_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> None:
+    def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> None:
         """
         Validate the value of a parameter.
 
@@ -169,15 +169,6 @@ class SupabaseClient():
                 any type or None.
             param_name (str): The name of the parameter.
             param_type (type): The expected type of the parameter.
-
-        Returns:
-            None
-
-        Raises:
-            ValueError: If the param_value is None and the param_type is not
-                Optional.
-            TypeError: If the param_value is not an instance of the expected
-                param_type.
         """
         origin_type = get_origin(param_type)
         check_type = origin_type if origin_type is not Optional else get_args(param_type)[0]
