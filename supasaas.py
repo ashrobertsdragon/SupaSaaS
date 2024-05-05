@@ -87,17 +87,14 @@ class SupabaseClient():
                 "insert", updates={"name": "John"}, table_name="users"
             )
         """
-        error_message: str = f"Error performing {action}"
+        error_message: list = [f"Error performing {action}"]
 
         arguments = {**kwargs}
-        if arguments:
-            error_message += " with "
-            error_list: list = []
         for arg_name, arg_value in arguments.items():
             if arg_value:
-                error_list.append(f"{str(arg_name)}: {str(arg_value)}")
+                error_message.append(f" with {str(arg_name)}: {str(arg_value)}")
 
-        return error_message + ", ".join(error_list)
+        return " ".join(error_message)
 
     def log_error(self, e: Exception, action: str, **kwargs) -> None:
         """
