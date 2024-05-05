@@ -160,18 +160,14 @@ class SupabaseClient():
         cls._validate_type(value, name=name, is_type=str, allow_none=False)
 
     @classmethod
-    def _find_true_type(cls, param_type: type) -> tuple[type, bool]:
-        true_type = param_type
-        allow_none = False
+    def _find_true_type(cls, param_type: type, allow_none: Optional[bool] = False) -> tuple[type, bool]:
+        true_type = get_origin(param_type) or param_type
         if hasattr(param_type, "__args__"):
             true_type = get_origin(param_type)
             args = get_args(param_type)
             if len(args) > 1 and args[1] is type(None):
                 allow_none = True
-                if isinstance(args[0], _GenericAlias):
-                    true_type = cls._find_true_type(args[0])
-                else:
-                    true_type = args[0]
+                true_type, allow_none = cls._find_true_type(args[0], allow_none)
         return true_type, allow_none
         
     @classmethod
