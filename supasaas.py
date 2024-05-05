@@ -60,7 +60,7 @@ class SupabaseClient():
         
         """
         all_args: str = ", ".join(str(arg) for arg in args)
-        all_kwargs: str = ', '.join(f"{k}={v}" for k, v in kwargs.items())
+        all_kwargs: str = ', '.join(f"{str(k)}={str(v)}" for k, v in kwargs.items())
         all_unpacked = f"{all_args}, {all_kwargs}" if (all_args and all_kwargs) else all_args+all_kwargs
         logging.info(f"{action} returned {all_unpacked}")
 
@@ -92,7 +92,7 @@ class SupabaseClient():
         arguments = {**kwargs}
         for arg_name, arg_value in arguments.items():
             if arg_value:
-                error_message.append(f" with {arg_name}: {arg_value}")
+                error_message.append(f" with {str(arg_name)}: {str(arg_value)}")
 
         return " ".join(error_message)
 
