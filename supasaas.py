@@ -140,7 +140,7 @@ class SupabaseClient():
                 raise ValueError(f"{name} must have value")
         else:
             if is_type is None:
-                raise ValueError("is_type must not be None")
+                raise TypeError("is_type must not be None")
             if not isinstance(value, is_type):
                 raise TypeError(f"{name} must be {is_type.__name__}")
 
@@ -160,7 +160,7 @@ class SupabaseClient():
         cls._validate_type(value, name=name, is_type=str)
 
     @classmethod
-    def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> None:
+    def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> tuple:
         """
         Validate the value of a parameter.
 
@@ -172,8 +172,14 @@ class SupabaseClient():
         """
         origin_type = get_origin(param_type)
         check_type = origin_type if origin_type is not Optional else get_args(param_type)[0]
-        none_bool = (origin_type is Optional)   
-        cls._validate_type(param_value, name=param_name, is_type=check_type, allow_none=none_bool)
+        none_bool = (origin_type is Optional)
+        params = (param_value, param_name, check_type, none_bool)
+        return params
+
+    @classmethod
+    def _validate_params(cls, params: tuple) -> None:
+        param_value, param_name, check_type, none_bool = params
+        cls._validate_type(param_value, param_name, check_type, none_bool)
 
     @staticmethod
     def validate_arguments(func: Callable[P, T]) -> Callable[P, T]:
@@ -227,7 +233,8 @@ class SupabaseClient():
             bound_args_arguments: dict = {k: v for k, v in bound_args.arguments.items() if k != 'self'}
             for param_name, param_value in bound_args_arguments.items():
                 param_type: type = type_hints[param_name]
-                self._validate_param_value(param_value, param_name, param_type)
+                params: tuple = self._collect_param_value(param_value, param_name, param_type)
+                self._validate_params(params)
             return func(self, *args, **kwargs)
 
         return wrapper
