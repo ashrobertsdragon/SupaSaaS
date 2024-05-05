@@ -3,7 +3,7 @@ import logging
 from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
 from functools import wraps
 
-import decouple
+from decouple import config
 from gotrue.types import AuthResponse, UserResponse
 from supabase import create_client, Client
 
@@ -26,11 +26,11 @@ class SupabaseClient():
         """Retrieves the value of an environment variable"""
         if isinstance(key, str):
             try:
-                return decouple(key)
+                return config(key)
             except Exception:
                 raise LookupError(f"Supabase API {key} not found")
         else:
-            raise TypeError(f"{key} must be string")
+            raise TypeError(f"{str(key)} must be string")
 
     def __init__(self) -> None:
         """Initiate one and only copy of the client."""
@@ -47,7 +47,6 @@ class SupabaseClient():
             if self.default_client:
                 self.log_info(action="Initialized Supabase default client")
 
-    
     def log_info(self, action: str, *args, **kwargs) -> None:
         """
         Log a Supabase response with the info logger.
@@ -60,9 +59,10 @@ class SupabaseClient():
             log_info("select", {"email": "example@example.com", "name": "John"})
         
         """
-        all_args: str = ", ".join(*args)
+        all_args: str = ", ".join(str(arg) for arg in args)
         all_kwargs: str = ', '.join(f"{k}={v}" for k, v in kwargs.items())
-        logging.info(f"{action} returned {all_args}{all_kwargs}")
+        all_unpacked = f"{all_args}, {all_kwargs}" if (all_args and all_kwargs) else all_args+all_kwargs
+        logging.info(f"{action} returned {all_unpacked}")
 
     def create_error_message(self, action: str, **kwargs) -> str:
         """
