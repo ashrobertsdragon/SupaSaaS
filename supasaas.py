@@ -1,12 +1,11 @@
 import inspect
+import logging
 import os
 from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
 from functools import wraps
 
 from gotrue.types import AuthResponse, UserResponse
 from supabase import create_client, Client
-
-from logging_config import LoggerManager
 
 
 T = TypeVar('T')
@@ -34,10 +33,8 @@ class SupabaseClient():
             raise TypeError(f"{key} must be string")
 
     def __init__(self) -> None:
-        """Initiate one and only copy of the client and assign loggers."""
+        """Initiate one and only copy of the client."""
         self.__dict__ = self._mono_state
-        self.error_logger = LoggerManager.get_error_logger()
-        self.info_logger = LoggerManager.get_info_logger()
 
         try:
             self.url: str = self._get_env_value("SUPABASE_URL")
@@ -65,7 +62,7 @@ class SupabaseClient():
         """
         all_args: str = ", ".join(*args)
         all_kwargs: str = ', '.join(f"{k}={v}" for k, v in kwargs.items())
-        self.info_logger(f"{action} returned {all_args}{all_kwargs}")
+        logging.info(f"{action} returned {all_args}{all_kwargs}")
 
     def create_error_message(self, action: str, **kwargs) -> str:
         """
@@ -119,8 +116,7 @@ class SupabaseClient():
         """
         error_message = self.create_error_message(action, **kwargs)
         error_message += "\nException: %s"
-
-        self.error_logger(error_message, str(e))
+        logging.error(error_message, str(e))
 
     @classmethod
     def _validate_type(cls, value: Optional[any], *, name: str, is_type: type, allow_none: bool) -> None:
