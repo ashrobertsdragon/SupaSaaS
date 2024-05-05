@@ -242,6 +242,10 @@ class SupabaseClient():
         return wrapper
 
 class SupabaseAuth(SupabaseClient):
+    """
+    Subclass of SupabaseClient for user authentication and managing the
+    authentication table via Supabase API.
+    """
     def __init__(self) -> None:
         super().__init__()
 
