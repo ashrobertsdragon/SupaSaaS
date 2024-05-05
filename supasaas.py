@@ -1,6 +1,6 @@
 import inspect
 import logging
-from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
+from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args, _GenericAlias
 from functools import wraps
 
 from decouple import config
@@ -160,6 +160,21 @@ class SupabaseClient():
         cls._validate_type(value, name=name, is_type=str, allow_none=False)
 
     @classmethod
+    def _find_true_type(cls, param_type: type) -> tuple[type, bool]:
+        true_type = param_type
+        allow_none = False
+        if hasattr(param_type, "__args__"):
+            true_type = get_origin(param_type)
+            args = get_args(param_type)
+            if len(args) > 1 and args[1] is type(None):
+                allow_none = True
+                if isinstance(args[0], _GenericAlias):
+                    true_type = cls._find_true_type(args[0])
+                else:
+                    true_type = args[0]
+        return true_type, allow_none
+        
+    @classmethod
     def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> tuple:
         """
         Validate the value of a parameter.
@@ -170,9 +185,7 @@ class SupabaseClient():
             param_name (str): The name of the parameter.
             param_type (type): The expected type of the parameter.
         """
-        origin_type = get_origin(param_type)
-        check_type = origin_type if origin_type is not Optional else get_args(param_type)[0]
-        none_bool = (origin_type is Optional)
+        check_type, none_bool = cls._find_true_type(param_type)
         params = (param_value, param_name, check_type, none_bool)
         return params
 
