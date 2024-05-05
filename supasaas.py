@@ -92,7 +92,7 @@ class SupabaseClient():
         arguments = {**kwargs}
         for arg_name, arg_value in arguments.items():
             if arg_value:
-                error_message.append(f" with {str(arg_name)}: {str(arg_value)}")
+                error_message.append(f"with {str(arg_name)}: {str(arg_value)}")
 
         return " ".join(error_message)
 
@@ -131,9 +131,9 @@ class SupabaseClient():
             allow_none (bool): Whether None is allowed as a value.
 
         Raises:
-            ValueError: If the value is None and allow_none is False or if
-                is_type is None.
-            TypeError:  If the value is not an instance of the expected type.
+            ValueError: If the value is None and allow_none is False.
+            TypeError:  If the value is not an instance of the expected type
+                or if is_type is None.
         """
         if value is None:
             if not allow_none:
