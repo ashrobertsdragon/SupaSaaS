@@ -147,17 +147,17 @@ class SupabaseClient():
     @classmethod
     def _validate_dict(cls, value: any, name: str) -> None:
         """Validate a dictionary"""
-        cls._validate_type(value, name=name, is_type=dict)
+        cls._validate_type(value, name=name, is_type=dict, allow_none=False)
 
     @classmethod    
     def _validate_list(cls, value: any, name: str) -> None:
         """Validate a list"""
-        cls._validate_type(value, name=name, is_type=list)
+        cls._validate_type(value, name=name, is_type=list, allow_none=False)
 
     @classmethod    
     def _validate_string(cls, value: any, name: str) -> None:
         """Validate a string"""
-        cls._validate_type(value, name=name, is_type=str)
+        cls._validate_type(value, name=name, is_type=str, allow_none=False)
 
     @classmethod
     def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> tuple:
