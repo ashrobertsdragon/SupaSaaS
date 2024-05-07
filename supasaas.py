@@ -1,6 +1,6 @@
 import inspect
 import logging
-from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args, _GenericAlias
+from typing import Optional, Callable, TypeVar, ParamSpec, get_type_hints, get_origin, get_args
 from functools import wraps
 
 from decouple import config
@@ -19,8 +19,11 @@ class SupabaseClient():
     Attributes:
         _mono_state (dict): A dictionary representing the shared state of all
             instances of the class.
+        _validation_data (dict): A dictionary containing the type information
+            of arguments to be validated.
     """
     _mono_state: dict = {}
+    _validation_data: dict = {}
 
     def _get_env_value(self, key: str) -> str:
         """Retrieves the value of an environment variable"""
@@ -146,24 +149,36 @@ class SupabaseClient():
 
     @classmethod
     def _validate_dict(cls, value: any, name: str) -> None:
-        """Validate a dictionary"""
+        """Validate a dictionary using the _validate_type method"""
         cls._validate_type(value, name=name, is_type=dict, allow_none=False)
 
     @classmethod    
     def _validate_list(cls, value: any, name: str) -> None:
-        """Validate a list"""
+        """Validate a list using the _validate_type method"""
         cls._validate_type(value, name=name, is_type=list, allow_none=False)
 
     @classmethod    
     def _validate_string(cls, value: any, name: str) -> None:
-        """Validate a string"""
+        """Validate a string using the _validate_type method"""
         cls._validate_type(value, name=name, is_type=str, allow_none=False)
 
     @classmethod
     def _find_true_type(cls, param_type: type, allow_none: Optional[bool] = False) -> tuple[type, bool]:
+        """
+        Flattens the type of subscriptable type annotations, retrieving the
+        true original type and noting if it is Optional.
+
+        Args:
+            param_type (type): The parameter type annotation.
+            allow_none (bool): Whether the type sent in the previous recursion
+                was an Optional type. Defaults to False.
+            Returns:
+                tuple[type, bool]: A tuple containing the true type of the
+                    parameter and a boolean indicating whether it or its
+                    parent was Optional.
+        """
         true_type = get_origin(param_type) or param_type
         if hasattr(param_type, "__args__"):
-            true_type = get_origin(param_type)
             args = get_args(param_type)
             if len(args) > 1 and args[1] is type(None):
                 allow_none = True
@@ -171,24 +186,52 @@ class SupabaseClient():
         return true_type, allow_none
         
     @classmethod
-    def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> tuple:
+    def _collect_param_value(cls, param_value: Optional[any], param_name: str, param_type: type) -> None:
         """
-        Validate the value of a parameter.
+        Collects the value, name, and type of a parameter into a validation
+        dictionary.
 
         Args:
             param_value (Optional[any]): The value of the parameter. It can be
                 any type or None.
             param_name (str): The name of the parameter.
             param_type (type): The expected type of the parameter.
+
+        Returns:
+            None
         """
-        check_type, none_bool = cls._find_true_type(param_type)
-        params = (param_value, param_name, check_type, none_bool)
-        return params
+        cls._validation_data = {
+            "param_value": param_value,
+            "param_name": param_name,
+            "param_type": param_type,
+        }
 
     @classmethod
-    def _validate_params(cls, params: tuple) -> None:
-        param_value, param_name, check_type, none_bool = params
-        cls._validate_type(param_value, param_name, check_type, none_bool)
+    def _validate_params(cls) -> None:
+        """
+        Validate the parameters of a function based on their type annotations.
+
+        This method is responsible for validating the parameters of a function
+        based on their type annotations. It retrieves the parameter value,
+        name, and type from the '_validation_data' dictionary and uses the
+        '_find_true_type' method to determine the true type of the parameter,
+        considering any Optional types. It then calls the '_validate_type'
+        method to perform the actual type validation.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Note: This method is intended to be called within the
+        'validate_arguments' decorator.
+        """
+        param_value = cls._validation_data["param_value"]
+        param_name = cls._validation_data["param_name"]
+        check_type, allow_none = cls._find_true_type(cls._validation_data["param_type"])
+        cls._validate_type(param_value, param_name, check_type, allow_none)
+        cls._validation_data = {} 
 
     @staticmethod
     def validate_arguments(func: Callable[P, T]) -> Callable[P, T]:
