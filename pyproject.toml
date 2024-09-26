@@ -1,0 +1,14 @@
+[project]
+name = "supasaas"
+version = "0.1.0"
+description = "SupaSaaS is a Python library that provides an abstraction layer over the Supabase Python client library. It is designed to simplify common tasks such as user authentication, database operations, and error logging, specifically tailored for Software as a Service (SaaS) applications."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "config>=0.5.1",
+    "supabase>=2.7.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
