@@ -9,7 +9,11 @@ from pydantic import BaseModel
 from supabase import Client, PostgrestAPIError, StorageException, create_client
 from supabase._sync.client import SupabaseException
 
+from ._logging import supabase_logger
+from ._validators import validate
+
 LogFunction: TypeAlias = Callable[[str, str, bool, Any, Any], None]
+ValidatorFunction: TypeAlias = Callable[[Any, type, bool], None]
 Table: TypeAlias = SyncRequestBuilder
 
 
@@ -31,7 +35,7 @@ class SupabaseClient:
     def __init__(
         self,
         supabase_login: SupabaseLogin,
-        log_function: LogFunction,
+        log_function: LogFunction = supabase_logger,
     ):
         self.login = supabase_login
         self.log = log_function
@@ -60,8 +64,8 @@ class SupabaseAuth:
     def __init__(
         self,
         client: SupabaseClient,
-        log_function: LogFunction,
-        validator: Callable[[Any, type, bool], None],
+        validator: ValidatorFunction = validate,
+        log_function: LogFunction = supabase_logger,
     ):
         self.client: Client = client.client_class.select_client()
         self.log = log_function
@@ -190,8 +194,8 @@ class SupabaseStorage:
     def __init__(
         self,
         client: SupabaseClient,
-        log_function: LogFunction,
-        validator: Callable[[Any, type, bool], None],
+        validator: ValidatorFunction = validate,
+        log_function: LogFunction = supabase_logger,
     ) -> None:
         self.client: Client = client.select_client()
         self.log = log_function
@@ -439,8 +443,8 @@ class SupabaseDB:
     def __init__(
         self,
         client: SupabaseClient,
-        log_function: LogFunction,
-        validator: Callable[[Any, type, bool], None],
+        validator: ValidatorFunction = validate,
+        log_function: LogFunction = supabase_logger,
     ) -> None:
         self.client = client
         self.log = log_function
@@ -614,7 +618,13 @@ class SupabaseDB:
             )
             return True
         except (PostgrestAPIError, ValueError, TypeError) as e:
-            self.log_error(e, action, match=match)
+            self.log(
+                level="error",
+                table_name=table_name,
+                exception=e,
+                action=action,
+                match=match,
+            )
             return False
 
     def select_row(
