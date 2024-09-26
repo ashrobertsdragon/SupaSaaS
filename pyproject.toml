@@ -3,12 +3,49 @@ name = "supasaas"
 version = "0.5.0"
 description = "SupaSaaS is a Python library that provides an abstraction layer over the Supabase Python client library. It is designed to simplify common tasks such as user authentication, database operations, and error logging, specifically tailored for Software as a Service (SaaS) applications."
 readme = "README.md"
+authors = [{name = "Ashlynn Antrobus", email = "ashlynn@prosepal.io"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 requires-python = ">=3.10"
 dependencies = [
-    "config>=0.5.1",
+    "python-decouple>=3.8",
     "supabase>=2.7.4",
+]
+
+[project.optional-dependencies]
+loguru = [
+    "loguru>=0.7.2",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.3",
+    "ruff>=0.6.8",
+]
+
+[tool.ruff]
+line-length = 79
+force-exclude = true
+exclude = [".git", "__pycache__", ".venv", "*cache", "work", "*.json"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I", "PTH", "W"]
+ignore = ["E203"]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "local-folder", "first-party"]
