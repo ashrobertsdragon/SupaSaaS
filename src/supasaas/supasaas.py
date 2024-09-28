@@ -184,7 +184,7 @@ class SupabaseAuth:
         try:
             return self.client.auth.update_user(updates)
         except AuthSessionMissingError as e:
-            self.error(
+            self.log(
                 level="error",
                 action="update user",
                 updates=updates,
