@@ -216,7 +216,8 @@ class SupabaseStorage:
             action (str): The action being performed in the bucket).
             **kwargs: Other commands being passed to the API.
         """
-        with self.client.storage.from_(bucket) as storage:
+        with self.client.storage as storage_client:
+            storage = storage_client.from_(bucket)
             return getattr(storage, action)(**kwargs)
 
     def _validate_response(
