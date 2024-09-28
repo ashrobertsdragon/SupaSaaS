@@ -67,7 +67,7 @@ class SupabaseAuth:
         validator: ValidatorFunction = validate,
         log_function: LogFunction = supabase_logger,
     ):
-        self.client: Client = client.client_class.select_client()
+        self.client: Client = client.select_client()
         self.log = log_function
         self.validate_response = validator
 
