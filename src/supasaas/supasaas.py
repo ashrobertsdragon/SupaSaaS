@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from supabase import Client, PostgrestAPIError, StorageException, create_client
 from supabase._sync.client import SupabaseException
 
-from ._logging import supabase_logger
-from ._validators import validate
+from ._logging import supabase_logger as default_logger
+from ._validators import validate as default_validator
 
 LogFunction: TypeAlias = Callable[[str, str, bool, Any, Any], None]
 ValidatorFunction: TypeAlias = Callable[[Any, type, bool], None]
@@ -35,7 +35,7 @@ class SupabaseClient:
     def __init__(
         self,
         supabase_login: SupabaseLogin,
-        log_function: LogFunction = supabase_logger,
+        log_function: LogFunction = default_logger,
     ):
         self.login = supabase_login
         self.log = log_function
@@ -64,8 +64,8 @@ class SupabaseAuth:
     def __init__(
         self,
         client: SupabaseClient,
-        validator: ValidatorFunction = validate,
-        log_function: LogFunction = supabase_logger,
+        validator: ValidatorFunction = default_validator,
+        log_function: LogFunction = default_logger,
     ):
         self.client: Client = client.select_client()
         self.log = log_function
@@ -194,8 +194,8 @@ class SupabaseStorage:
     def __init__(
         self,
         client: SupabaseClient,
-        validator: ValidatorFunction = validate,
-        log_function: LogFunction = supabase_logger,
+        validator: ValidatorFunction = default_validator,
+        log_function: LogFunction = default_logger,
     ) -> None:
         self.client: Client = client.select_client()
         self.log = log_function
@@ -443,8 +443,8 @@ class SupabaseDB:
     def __init__(
         self,
         client: SupabaseClient,
-        validator: ValidatorFunction = validate,
-        log_function: LogFunction = supabase_logger,
+        validator: ValidatorFunction = default_validator,
+        log_function: LogFunction = default_logger,
     ) -> None:
         self.client = client
         self.log = log_function
