@@ -3,6 +3,10 @@ from pathlib import Path
 from typing import Any, TypeAlias
 
 from decouple import config
+from gotrue._async.gotrue_client import (
+    AuthInvalidCredentialsError,
+    AuthSessionMissingError,
+)
 from gotrue.types import AuthResponse, UserResponse
 from postgrest import APIResponse, SyncRequestBuilder
 from pydantic import BaseModel
@@ -84,7 +88,8 @@ class SupabaseAuth:
                 information.
 
         Raises:
-            Exception: If an error occurs during the sign up process.
+            AuthInvalidCredentialsError: If an error occurs during the sign up
+                process.
 
         Example:
             sign_up(email="example@example.com", password="password123")
@@ -94,9 +99,9 @@ class SupabaseAuth:
                 "email": email,
                 "password": password,
             })
-            self.validate_response(response, expected_type="Tuple")
+            self.validate_response(response, expected_type="tuple")
             return response
-        except Exception as e:
+        except AuthInvalidCredentialsError as e:
             self.log(level="error", action="signup", email=email, exception=e)
             raise
 
@@ -113,7 +118,8 @@ class SupabaseAuth:
                 information.
 
         Raises:
-            Exception: If an error occurs during the sign in process.
+            AuthInvalidCredentialsError: If an error occurs during the sign in
+                process.
 
         Example:
             sign_in(email="example@example.com", password="password123")
@@ -123,7 +129,7 @@ class SupabaseAuth:
                 "email": email,
                 "password": password,
             })
-        except Exception as e:
+        except AuthInvalidCredentialsError as e:
             self.log(level="error", action="login", email=email, exception=e)
 
     def sign_out(self) -> None:
@@ -131,16 +137,14 @@ class SupabaseAuth:
         Signs out the currently authenticated user.
 
         Raises:
-            Exception: If an error occurs during the sign out process.
+            AuthInvalidCredentialsError: If an error occurs during the sign
+                out process.
 
         Example:
             sign_out()
         """
-        try:
-            self.client.auth.sign_out()
-        except Exception as e:
-            self.log(level="error", action="logout", exception=e)
-            raise
+        # Supabase library suppresses sign out errors
+        self.client.auth.sign_out()
 
     def reset_password(self, *, email: str, domain: str) -> None:
         """
@@ -151,18 +155,16 @@ class SupabaseAuth:
             domain (str): The domain of the application.
 
         Raises:
-            Exception: If an error occurs during the password reset process.
+            AuthInvalidCredentialsError: If an error occurs during the
+                password reset process.
 
         Example:
             reset_password(email="example@example.com", domain="example.com")
         """
-        try:
-            self.client.auth.reset_password_email(
-                email, options={"redirect_to": f"{domain}/reset-password.html"}
-            )
-        except Exception as e:
-            self.log(level="error", action="reset_password", email=email, e=e)
-            raise
+        # Supabase library does not raise any errors
+        self.client.auth.reset_password_email(
+            email, options={"redirect_to": f"{domain}/reset-password.html"}
+        )
 
     def update_user(self, updates: dict) -> UserResponse:
         """
@@ -173,14 +175,15 @@ class SupabaseAuth:
                 the user.
 
         Raises:
-            Exception: If an error occurs during the update process.
+            AuthInvalidCredentialsError: If an error occurs during the update
+                process.
 
         Example:
             update_user(updates={"name": "John", "age": 30})
         """
         try:
             return self.client.auth.update_user(updates)
-        except Exception as e:
+        except AuthSessionMissingError as e:
             self.error(
                 level="error",
                 action="update user",
