@@ -521,7 +521,12 @@ class SupabaseDB:
             return False
 
     def _get_filter(
-        self, match: dict, action: str, table_name: str
+        self,
+        match: dict,
+        *,
+        expected_value_type: type,
+        action: str,
+        table_name: str,
     ) -> tuple[str, str]:
         """
         Parse the dictionary storing the query filter
@@ -536,6 +541,7 @@ class SupabaseDB:
                 filter.
         """
         try:
+            self.validator(match, dict)
             if len(match.keys()) > 1:
                 raise ValueError(
                     "Match dictionary must have one key-value pair"
@@ -543,10 +549,11 @@ class SupabaseDB:
             for key, value in match.items():
                 self.validator(key, str)
                 try:
-                    self.validator(value, str)
+                    self.validator(value, expected_value_type)
                 except TypeError as error:
                     raise TypeError(
-                        f"Value for filter '{key}' must be a string"
+                        f"Value for filter '{key}' "
+                        "must be a {expected_value_type.__name__}"
                     ) from error
         except (ValueError, TypeError) as e:
             self.log(
@@ -556,6 +563,7 @@ class SupabaseDB:
                 match=match,
                 table_name=table_name,
             )
+            raise
 
         match_name, match_value = next(iter(match.items()))
         return match_name, match_value
