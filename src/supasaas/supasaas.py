@@ -506,7 +506,7 @@ class SupabaseDB:
         """
         try:
             self.validator(data, list)
-            for item in list:
+            for item in data:
                 self.validator(item, dict)
             return True
         except (ValueError, TypeError) as e:
