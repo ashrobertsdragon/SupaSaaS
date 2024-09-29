@@ -553,7 +553,7 @@ class SupabaseDB:
                 except TypeError as error:
                     raise TypeError(
                         f"Value for filter '{key}' "
-                        "must be a {expected_value_type.__name__}"
+                        f"must be a {expected_value_type.__name__}"
                     ) from error
         except (ValueError, TypeError) as e:
             self.log(
