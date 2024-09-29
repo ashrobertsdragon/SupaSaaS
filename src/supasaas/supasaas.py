@@ -434,9 +434,9 @@ class SupabaseStorage:
         url = response["signedURL"]
         if self._validate_response(
             url,
-            str,
-            action,
-            bucket,
+            expected_type=str,
+            action=action,
+            bucket=bucket,
             download_path=download_path,
             expires_in=expires_in,
         ):
