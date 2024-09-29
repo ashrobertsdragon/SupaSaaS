@@ -478,7 +478,8 @@ class SupabaseDB:
             APIResponse: The json response object with a data list and count
                 integer.
         """
-        with db_client.from_(table_name) as table:
+        with db_client.postgrest as postgrest:
+            table = postgrest.from_(table_name)
             return query(table).execute()
 
     def _validate_response(
