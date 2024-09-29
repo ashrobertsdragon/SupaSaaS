@@ -385,7 +385,9 @@ class SupabaseStorage:
         except StorageException as e:
             self.log(level="error", action=action, bucket=bucket, exception=e)
             return self.empty_value
-        if self._validate_response(response, list, action, bucket):
+        if self._validate_response(
+            response, expected_type=list, action=action, bucket=bucket
+        ):
             return response
         else:
             return self.empty_value
