@@ -514,6 +514,7 @@ class SupabaseDB:
                 level="error",
                 action=action,
                 table_name=table_name,
+                data=data,
                 exception=e,
                 **kwargs,
             )
