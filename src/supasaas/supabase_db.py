@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
-from postgrest import APIResponse, SyncRequestBuilder
-from supabase import Client, PostgrestAPIError
+from postgrest import SyncRequestBuilder
+from supabase import Client, PostgrestAPIError, PostgrestAPIResponse
 
 from supasaas._logging.supabase_logger import supabase_logger as default_logger
 from supasaas._validators import validate as default_validator
@@ -31,7 +31,7 @@ class SupabaseDB:
 
     def _execute_query(
         self, db_client: Client, table_name: str, query: Callable
-    ) -> APIResponse:
+    ) -> PostgrestAPIResponse:
         """
         Execute the database query on the table with the correct client.
 
@@ -43,8 +43,8 @@ class SupabaseDB:
                 Example: `lambda table: table.insert(row_dictionary)`
 
         Returns:
-            APIResponse: The json response object with a data list and count
-                integer.
+            PostgrestAPIResponse: The json response object with a data list and
+                count integer.
         """
         with db_client.postgrest as postgrest:
             table = postgrest.from_(table_name)
