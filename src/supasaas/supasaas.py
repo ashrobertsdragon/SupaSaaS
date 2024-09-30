@@ -611,7 +611,9 @@ class SupabaseDB:
             return False
         return True
 
-    def delete_row(self, *, table_name: str, match: dict) -> bool:
+    def delete_row(
+        self, *, table_name: str, match: dict, match_type: type
+    ) -> bool:
         """
         Deletes a row from a table based on a matching condition.
         Args:
@@ -627,7 +629,10 @@ class SupabaseDB:
         db_client: Client = self._get_client(use_service_role=False)
         try:
             match_name, match_value = self._get_filter(
-                match, action, table_name
+                match,
+                expected_value_type=match_type,
+                action=action,
+                table_name=table_name,
             )
             self._execute_query(
                 db_client=db_client,
