@@ -1,4 +1,4 @@
-from . import logger
+from .. import logger
 
 
 def format_args(args: list | None) -> str:

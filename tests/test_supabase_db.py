@@ -1,7 +1,7 @@
 import pytest
 from postgrest import SyncPostgrestClient
 
-from supasaas.supasaas import (
+from supasaas.supabase_auth import (
     PostgrestAPIError,
     SupabaseDB,
     default_logger,

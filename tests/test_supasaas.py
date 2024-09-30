@@ -1,7 +1,7 @@
 import pytest
 from supabase._sync.client import SupabaseException
 
-from supasaas.supasaas import SupabaseClient, SupabaseLogin
+from supasaas.supabase_auth import SupabaseClient, SupabaseLogin
 
 
 @pytest.fixture

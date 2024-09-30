@@ -1,7 +1,7 @@
 import pytest
 from gotrue.errors import AuthInvalidCredentialsError, AuthSessionMissingError
 
-from supasaas.supasaas import (
+from supasaas.supabase_auth import (
     SupabaseAuth,
     default_logger,
     default_validator,

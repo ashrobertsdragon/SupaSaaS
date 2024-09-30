@@ -2,7 +2,7 @@ import sys
 
 from loguru import logger
 
-from . import set_logger
+from .. import set_logger
 
 set_logger(logger)
 
