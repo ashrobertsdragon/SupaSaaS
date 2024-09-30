@@ -764,7 +764,6 @@ class SupabaseDB:
             self.log(
                 level="error",
                 action=action,
-                response=response.get("data", ""),
                 info=info,
                 match=match,
                 exception=e,
