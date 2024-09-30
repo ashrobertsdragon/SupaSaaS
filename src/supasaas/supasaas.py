@@ -655,6 +655,7 @@ class SupabaseDB:
         *,
         table_name: str,
         match: dict,
+        match_type: type,
         columns: list[str] | None = None,
     ) -> list[dict]:
         """
@@ -681,7 +682,10 @@ class SupabaseDB:
         db_client: Client = self._get_client(use_service_role=True)
         try:
             match_name, match_value = self._get_filter(
-                match, action, table_name
+                match,
+                expected_value_type=match_type,
+                action=action,
+                table_name=table_name,
             )
             response = self._execute_query(
                 db_client=db_client,
