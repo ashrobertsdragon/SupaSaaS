@@ -17,3 +17,16 @@ class LoggerProxy:
         if self._logger is None:
             self._add_basic_logger()
         return getattr(self._logger, name)
+
+
+logger = LoggerProxy()
+
+
+def set_logger(custom_logger: Any) -> None:
+    """
+    Set the logger for the entire library.
+
+    Args:
+        custom_logger: The logger object to be used throughout the library.
+    """
+    logger.set_logger(custom_logger)
