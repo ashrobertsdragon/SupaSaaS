@@ -694,9 +694,11 @@ class SupabaseDB:
                     match_name, match_value
                 ),
             )
-            if not response or not response.data:
-                raise ValueError("Response has no data")
-        except (PostgrestAPIError, ValueError) as e:
+            if not response.get("data"):
+                raise PostgrestAPIError({
+                    "message": f"Failed to select row into {table_name}"
+                })
+        except (PostgrestAPIError, ValueError, TypeError) as e:
             self.log(
                 level="error",
                 exception=e,
@@ -707,14 +709,14 @@ class SupabaseDB:
             )
             return self.empty_value
         if self._validate_response(
-            response.data,
+            response.get("data"),
             expected_type=list,
             action=action,
             table_name=table_name,
             colum_str=column_str,
             match=match,
         ):
-            return response.data
+            return response["data"]
         else:
             return self.empty_value
 
@@ -753,21 +755,22 @@ class SupabaseDB:
                     match_name, match_value
                 ),
             )
-        except (PostgrestAPIError, ValueError, TypeError) as e:
-            self.log_error(e, action, updates=info, match=match)
-            return False
-        if response.data:
+            if not response.get("data"):
+                raise PostgrestAPIError({
+                    "message": f"Failed to update row into {table_name}"
+                })
             return True
-        log = "Data is the same"
-        self.log(
-            level="info",
-            action=action,
-            response=response.data,
-            info=info,
-            match=match,
-            log=log,
-        )
-        return False
+        except (PostgrestAPIError, ValueError, TypeError) as e:
+            self.log(
+                level="info",
+                action=action,
+                response=response.get("data", ""),
+                info=info,
+                match=match,
+                exception=e,
+                table_name=table_name,
+            )
+            return False
 
     def find_row(
         self,
