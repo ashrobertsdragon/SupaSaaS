@@ -596,9 +596,11 @@ class SupabaseDB:
                 table_name=table_name,
                 query=lambda table: table.insert(data),
             )
-            if not response.data:
-                raise ValueError("Response has no data")
-        except (PostgrestAPIError, ValueError) as e:
+            if not response.get("data"):
+                raise PostgrestAPIError({
+                    "message": f"Failed to insert row into {table_name}"
+                })
+        except PostgrestAPIError as e:
             self.log(
                 level="error",
                 action="insert",
