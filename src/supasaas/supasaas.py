@@ -777,7 +777,7 @@ class SupabaseDB:
         table_name: str,
         match_column: str,
         within_period: int,
-        columns: list[str] | None,
+        columns: list[str] | None = None,
     ) -> list[dict]:
         action: str = "find row"
         if columns is None:
@@ -804,17 +804,14 @@ class SupabaseDB:
             )
             return self.empty_value
 
-        if (
-            response
-            and response.data  # noqa: W503
-            and self._validate_response(  # noqa: W503
-                response.data,
-                expected_type=list,
-                action=action,
-                table_name=table_name,
-                match_column=match_column,
-                within_period=within_period,
-                columns=columns,
-            )
+        if response.get("data") and self._validate_response(
+            response.get("data"),
+            expected_type=list,
+            action=action,
+            table_name=table_name,
+            match_column=match_column,
+            within_period=within_period,
+            columns=columns,
         ):
-            return self.empty_value
+            return response["data"]
+        return self.empty_value
