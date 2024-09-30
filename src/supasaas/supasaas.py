@@ -713,7 +713,7 @@ class SupabaseDB:
             expected_type=list,
             action=action,
             table_name=table_name,
-            colum_str=column_str,
+            column_str=column_str,
             match=match,
         ):
             return response["data"]
@@ -762,7 +762,7 @@ class SupabaseDB:
             return True
         except (PostgrestAPIError, ValueError, TypeError) as e:
             self.log(
-                level="info",
+                level="error",
                 action=action,
                 response=response.get("data", ""),
                 info=info,
