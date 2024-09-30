@@ -1,13 +1,13 @@
 import pytest
 from supabase._sync.client import SupabaseException
 
-from supasaas.supabase_auth import SupabaseClient, SupabaseLogin
+from supasaas.supabase_client import SupabaseClient, SupabaseLogin
 
 
 @pytest.fixture
 def supabase_login(mocker):
     mocker.patch(
-        "supasaas.supasaas.config",
+        "supasaas.supabase_client.config",
         side_effect=lambda key: {
             "SUPABASE_URL": "https://example.supabase.co",
             "SUPABASE_KEY": "example_key",
@@ -19,7 +19,7 @@ def supabase_login(mocker):
 
 def test_initializes_from_config(mocker):
     mocker.patch(
-        "supasaas.supasaas.config",
+        "supasaas.supabase_client.config",
         side_effect=lambda key: {
             "SUPABASE_URL": "https://example.supabase.co",
             "SUPABASE_KEY": "example_key",
@@ -36,7 +36,7 @@ def test_initializes_from_config(mocker):
 
 def test_missing_supabase_url(mocker):
     mocker.patch(
-        "supasaas.supasaas.config",
+        "supasaas.supabase_client.config",
         side_effect=lambda key: {
             "SUPABASE_KEY": "example_key",
             "SUPABASE_SERVICE_ROLE": "example_service_role",
@@ -71,7 +71,7 @@ def test_supabase_client_accepts_custom_logger(mocker, supabase_login):
 
 
 def test_initialize_client(mocker, supabase_login):
-    mock_create_client = mocker.patch("supasaas.supasaas.create_client")
+    mock_create_client = mocker.patch("supasaas.supabase_client.create_client")
 
     client = SupabaseClient(supabase_login)
 
@@ -89,8 +89,8 @@ def test_initialize_client(mocker, supabase_login):
 
 
 def test_initialize_client_error(mocker, supabase_login):
-    mock_create_client = mocker.patch("supasaas.supasaas.create_client")
-    mock_logger = mocker.patch("supasaas.supasaas.default_logger")
+    mock_create_client = mocker.patch("supasaas.supabase_client.create_client")
+    mock_logger = mocker.patch("supasaas.supabase_client.default_logger")
     error_obj = SupabaseException("Error")
     mock_create_client.side_effect = error_obj
 
@@ -103,7 +103,7 @@ def test_initialize_client_error(mocker, supabase_login):
 
 
 def test_select_client(mocker, supabase_login):
-    mocker.patch("supasaas.supasaas.create_client")
+    mocker.patch("supasaas.supabase_client.create_client")
     client = SupabaseClient(supabase_login)
 
     assert client.select_client() == client.default_client

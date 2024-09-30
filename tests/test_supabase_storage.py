@@ -1,6 +1,6 @@
 import pytest
 
-from supasaas.supabase_auth import (
+from supasaas.supabase_storage import (
     StorageException,
     SupabaseStorage,
     default_logger,
