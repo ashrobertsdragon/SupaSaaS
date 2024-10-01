@@ -1,0 +1,505 @@
+
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>supasaas.supabase_db &#8212; SupaSaaS 2024-09-30 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bizstyle.css?v=658d757c" />
+    
+    <script src="../../_static/documentation_options.js?v=4d045338"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_db</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for supasaas.supabase_db</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span>
+
+<span class="kn">from</span> <span class="nn">postgrest</span> <span class="kn">import</span> <span class="n">SyncRequestBuilder</span>
+<span class="kn">from</span> <span class="nn">supabase</span> <span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">PostgrestAPIError</span><span class="p">,</span> <span class="n">PostgrestAPIResponse</span>
+
+<span class="kn">from</span> <span class="nn">supasaas._logging.supabase_logger</span> <span class="kn">import</span> <span class="n">supabase_logger</span> <span class="k">as</span> <span class="n">default_logger</span>
+<span class="kn">from</span> <span class="nn">supasaas._validators</span> <span class="kn">import</span> <span class="n">validate</span> <span class="k">as</span> <span class="n">default_validator</span>
+<span class="kn">from</span> <span class="nn">supasaas.supabase_client</span> <span class="kn">import</span> <span class="n">SupabaseClient</span>
+
+<span class="n">LogFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">ValidatorFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">Table</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">SyncRequestBuilder</span>
+
+
+<div class="viewcode-block" id="SupabaseDB">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB">[docs]</a>
+<span class="k">class</span> <span class="nc">SupabaseDB</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">client</span><span class="p">:</span> <span class="n">SupabaseClient</span><span class="p">,</span>
+        <span class="n">validator</span><span class="p">:</span> <span class="n">ValidatorFunction</span> <span class="o">=</span> <span class="n">default_validator</span><span class="p">,</span>
+        <span class="n">log_function</span><span class="p">:</span> <span class="n">LogFunction</span> <span class="o">=</span> <span class="n">default_logger</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{}]</span>
+
+    <span class="k">def</span> <span class="nf">_get_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_service_role</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Client</span><span class="p">:</span>
+        <span class="s2">&quot;Return the correct client based on the `use_service_role` boolean&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">select_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_execute_query</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Callable</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PostgrestAPIResponse</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the database query on the table with the correct client.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db_client (Client): The Supabase client with the correct</span>
+<span class="sd">                permissions for the query.</span>
+<span class="sd">            table_name (str): The name of the table to be queried.</span>
+<span class="sd">            query (Callable): The lambda function of the Supabase SDK query.</span>
+<span class="sd">                Example: `lambda table: table.insert(row_dictionary)`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            PostgrestAPIResponse: The json response object with a data list and</span>
+<span class="sd">                count integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">db_client</span><span class="o">.</span><span class="n">postgrest</span> <span class="k">as</span> <span class="n">postgrest</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">postgrest</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">query</span><span class="p">(</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_validate_response</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the data response from the Supabase SDK against the expected</span>
+<span class="sd">        type and log an error if it doesn&#39;t match.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Any): The data object from the JSON response.</span>
+<span class="sd">            action (str): The query action being performed.</span>
+<span class="sd">            table_name (str): The table the query was performed on.</span>
+<span class="sd">            **kwargs: Any other keyword arguments to be logged.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the data object is a list of dictionaries and False</span>
+<span class="sd">                if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_get_filter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">match</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">expected_value_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse the dictionary storing the query filter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            match (dict): The dictionary containing the query filter.</span>
+<span class="sd">            action (str): The query action being performed.</span>
+<span class="sd">            table_name (str): The table the query is being performed on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[str, str]: The match_name and match_value of the query</span>
+<span class="sd">                filter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Match dictionary must have one key-value pair&quot;</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">match</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">expected_value_type</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Value for filter &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;must be a </span><span class="si">{</span><span class="n">expected_value_type</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="nn">error</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">match</span><span class="o">=</span><span class="n">match</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span>
+
+<div class="viewcode-block" id="SupabaseDB.insert_row">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB.insert_row">[docs]</a>
+    <span class="k">def</span> <span class="nf">insert_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">use_service_role</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inserts a row into a table.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_name (str): The name of the table to insert the row into.</span>
+<span class="sd">            data (dict): The data to be inserted as a row. Should be a</span>
+<span class="sd">                dictionary where the keys represent the column names and the</span>
+<span class="sd">                values represent the corresponding values for each column.</span>
+<span class="sd">            use_service_role (bool, optional): Determines whether to use the</span>
+<span class="sd">              service role client or the default client. Service role client</span>
+<span class="sd">              should only be used for operations where a new user row is being</span>
+<span class="sd">              inserted. Otherwise use default client for RLS policy on</span>
+<span class="sd">              authenticated user. Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the update was successful, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_query</span><span class="p">(</span>
+                <span class="n">db_client</span><span class="o">=</span><span class="n">db_client</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="k">lambda</span> <span class="n">table</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PostgrestAPIError</span><span class="p">({</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Failed to insert row into </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">})</span>
+        <span class="k">except</span> <span class="n">PostgrestAPIError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;insert&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SupabaseDB.delete_row">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB.delete_row">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">match</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">match_type</span><span class="p">:</span> <span class="nb">type</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes a row from a table based on a matching condition.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            table_name (str): The name of the table to delete the row from.</span>
+<span class="sd">            match (dict): A dictionary representing the matching condition for</span>
+<span class="sd">            the row to delete. The keys should be the column name and the value</span>
+<span class="sd">            should be the corresponding value to match.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the row deletion was successful, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;delete&quot;</span>
+        <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filter</span><span class="p">(</span>
+                <span class="n">match</span><span class="p">,</span>
+                <span class="n">expected_value_type</span><span class="o">=</span><span class="n">match_type</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute_query</span><span class="p">(</span>
+                <span class="n">db_client</span><span class="o">=</span><span class="n">db_client</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="k">lambda</span> <span class="n">table</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">PostgrestAPIError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">match</span><span class="o">=</span><span class="n">match</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SupabaseDB.select_row">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB.select_row">[docs]</a>
+    <span class="k">def</span> <span class="nf">select_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">match</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">match_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves a row or columns from a table based on a matching condition.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_name (str): The name of the table to retrieve the row from.</span>
+<span class="sd">            match (dict): A dictionary representing the matching condition.</span>
+<span class="sd">                The key should be the column name and the value should be</span>
+<span class="sd">                the corresponding value to match.</span>
+<span class="sd">            ValueError: If the match argument is not a dictionary, or</span>
+<span class="sd">                table_name is not a string.</span>
+<span class="sd">            columns (List[str], optional): A list of column names to retrieve</span>
+<span class="sd">                from the row. Defaults to [&quot;*&quot;], which retrieves all columns.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[dict]: A list of dictionaries representing the retrieved row</span>
+<span class="sd">                or rows. If no row is found matching the condition, an empty</span>
+<span class="sd">                dictionary is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;select&quot;</span>
+        <span class="n">column_str</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span> <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filter</span><span class="p">(</span>
+                <span class="n">match</span><span class="p">,</span>
+                <span class="n">expected_value_type</span><span class="o">=</span><span class="n">match_type</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_query</span><span class="p">(</span>
+                <span class="n">db_client</span><span class="o">=</span><span class="n">db_client</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="k">lambda</span> <span class="n">table</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">column_str</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span>
+                    <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PostgrestAPIError</span><span class="p">({</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Failed to select row into </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">})</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">PostgrestAPIError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">column_str</span><span class="o">=</span><span class="n">column_str</span><span class="p">,</span>
+                <span class="n">match</span><span class="o">=</span><span class="n">match</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_response</span><span class="p">(</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">),</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+            <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="n">column_str</span><span class="o">=</span><span class="n">column_str</span><span class="p">,</span>
+            <span class="n">match</span><span class="o">=</span><span class="n">match</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span></div>
+
+
+<div class="viewcode-block" id="SupabaseDB.update_row">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB.update_row">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">match</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">match_type</span><span class="p">:</span> <span class="nb">type</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates a row in the table with data when the row matches a column.</span>
+<span class="sd">        Returns True if the update was successful, False otherwise.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_name (str): The name of the table to update the row in.</span>
+<span class="sd">            info (dict): A dictionary representing the data to update in the</span>
+<span class="sd">                row. The keys should be the column names and the values should</span>
+<span class="sd">                be the corresponding values to update.</span>
+<span class="sd">            match (dict): A dictionary representing the matching condition for</span>
+<span class="sd">                the row to update. The keys should be the column name and the</span>
+<span class="sd">                value should be the corresponding value to match.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the update was successful, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;update&quot;</span>
+        <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filter</span><span class="p">(</span>
+                <span class="n">match</span><span class="p">,</span>
+                <span class="n">expected_value_type</span><span class="o">=</span><span class="n">match_type</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_query</span><span class="p">(</span>
+                <span class="n">db_client</span><span class="o">=</span><span class="n">db_client</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="k">lambda</span> <span class="n">table</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span>
+                    <span class="n">match_name</span><span class="p">,</span> <span class="n">match_value</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PostgrestAPIError</span><span class="p">({</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Failed to update row into </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">})</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">PostgrestAPIError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                <span class="n">match</span><span class="o">=</span><span class="n">match</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SupabaseDB.find_row">
+<a class="viewcode-back" href="../../supabase_db.html#supasaas.supabase_db.SupabaseDB.find_row">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">match_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">within_period</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves a row or columns from a table based on a matching condition</span>
+<span class="sd">        within a specified period.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_name (str): The name of the table to retrieve the row from.</span>
+<span class="sd">            match_column (str): The name of the column to match on.</span>
+<span class="sd">            within_period (int): The number of seconds within which to search</span>
+<span class="sd">            for the matching row.</span>
+<span class="sd">            columns (List[str], optional): A list of column names to retrieve</span>
+<span class="sd">            from the row. Defaults to [&quot;*&quot;], which retrieves all columns.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[dict]: A list of dictionaries representing the retrieved row</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;find row&quot;</span>
+        <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">]</span>
+
+        <span class="n">db_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">use_service_role</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_query</span><span class="p">(</span>
+                <span class="n">db_client</span><span class="o">=</span><span class="n">db_client</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="k">lambda</span> <span class="n">table</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">lte</span><span class="p">(</span>
+                    <span class="n">match_column</span><span class="p">,</span> <span class="n">within_period</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">PostgrestAPIError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+                <span class="n">match_column</span><span class="o">=</span><span class="n">match_column</span><span class="p">,</span>
+                <span class="n">within_period</span><span class="o">=</span><span class="n">within_period</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_response</span><span class="p">(</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">),</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+            <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="n">match_column</span><span class="o">=</span><span class="n">match_column</span><span class="p">,</span>
+            <span class="n">within_period</span><span class="o">=</span><span class="n">within_period</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_db</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Ashlynn Antrobus.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

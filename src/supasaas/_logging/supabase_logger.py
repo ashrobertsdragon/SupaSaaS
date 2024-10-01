@@ -1,3 +1,5 @@
+"""Default logging parser for SupaSaaS APIs"""
+
 from supasaas._logging import logger
 
 
@@ -28,8 +30,8 @@ def construct_message(
 
     Args:
         action (str): The action performed.
-        arg_str (str): The logger's *args parsed into a string.
-        kwarg_str (str): The logger's **kwargs parsed into a string.
+        arg_str (str): The logger's args parsed into a string.
+        kwarg_str (str): The logger's kwargs parsed into a string.
         is_error (bool): Whether or not the log message is for an Exception.
         exception (Exception | None): The exception being logged if there is
             one, defaults to None.

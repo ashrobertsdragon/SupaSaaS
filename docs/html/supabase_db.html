@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Supabase DB &#8212; SupaSaaS 2024-09-30 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css?v=658d757c" />
+    
+    <script src="_static/documentation_options.js?v=4d045338"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Supabase Storage" href="supabase_storage.html" />
+    <link rel="prev" title="Supabase Client" href="supabase_client.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="supabase_storage.html" title="Supabase Storage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="supabase_client.html" title="Supabase Client"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Modules</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Supabase DB</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="supabase-db">
+<h1>Supabase DB<a class="headerlink" href="#supabase-db" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">supasaas.supabase_db.</span></span><span class="sig-name descname"><span class="pre">SupabaseDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">client:</span> <span class="pre">~supasaas.supabase_client.SupabaseClient,</span> <span class="pre">validator:</span> <span class="pre">~collections.abc.Callable[[~typing.Any,</span> <span class="pre">type,</span> <span class="pre">bool],</span> <span class="pre">None]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">validate&gt;,</span> <span class="pre">log_function:</span> <span class="pre">~collections.abc.Callable[[str,</span> <span class="pre">str,</span> <span class="pre">bool,</span> <span class="pre">~typing.Any,</span> <span class="pre">~typing.Any],</span> <span class="pre">None]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">supabase_logger&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB.delete_row">
+<span class="sig-name descname"><span class="pre">delete_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB.delete_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB.delete_row" title="Link to this definition">¶</a></dt>
+<dd><p>Deletes a row from a table based on a matching condition.
+:param table_name: The name of the table to delete the row from.
+:type table_name: str
+:param match: A dictionary representing the matching condition for
+:type match: dict
+:param the row to delete. The keys should be the column name and the value:
+:param should be the corresponding value to match.:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the row deletion was successful, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB.find_row">
+<span class="sig-name descname"><span class="pre">find_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">within_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB.find_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB.find_row" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves a row or columns from a table based on a matching condition
+within a specified period.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to retrieve the row from.</p></li>
+<li><p><strong>match_column</strong> (<em>str</em>) – The name of the column to match on.</p></li>
+<li><p><strong>within_period</strong> (<em>int</em>) – The number of seconds within which to search</p></li>
+<li><p><strong>row.</strong> (<em>for the matching</em>)</p></li>
+<li><p><strong>columns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – A list of column names to retrieve</p></li>
+<li><p><strong>[</strong><strong>&quot;*&quot;</strong><strong>]</strong> (<em>from the row. Defaults to</em>)</p></li>
+<li><p><strong>columns.</strong> (<em>which retrieves all</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of dictionaries representing the retrieved row</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB.insert_row">
+<span class="sig-name descname"><span class="pre">insert_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_service_role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB.insert_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB.insert_row" title="Link to this definition">¶</a></dt>
+<dd><p>Inserts a row into a table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to insert the row into.</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – The data to be inserted as a row. Should be a
+dictionary where the keys represent the column names and the
+values represent the corresponding values for each column.</p></li>
+<li><p><strong>use_service_role</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether to use the
+service role client or the default client. Service role client
+should only be used for operations where a new user row is being
+inserted. Otherwise use default client for RLS policy on
+authenticated user. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the update was successful, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB.select_row">
+<span class="sig-name descname"><span class="pre">select_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB.select_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB.select_row" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves a row or columns from a table based on a matching condition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to retrieve the row from.</p></li>
+<li><p><strong>match</strong> (<em>dict</em>) – A dictionary representing the matching condition.
+The key should be the column name and the value should be
+the corresponding value to match.</p></li>
+<li><p><strong>ValueError</strong> – If the match argument is not a dictionary, or
+table_name is not a string.</p></li>
+<li><p><strong>columns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – A list of column names to retrieve
+from the row. Defaults to [“*”], which retrieves all columns.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A list of dictionaries representing the retrieved row</dt><dd><p>or rows. If no row is found matching the condition, an empty
+dictionary is returned.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="supasaas.supabase_db.SupabaseDB.update_row">
+<span class="sig-name descname"><span class="pre">update_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/supasaas/supabase_db.html#SupabaseDB.update_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#supasaas.supabase_db.SupabaseDB.update_row" title="Link to this definition">¶</a></dt>
+<dd><p>Updates a row in the table with data when the row matches a column.
+Returns True if the update was successful, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to update the row in.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – A dictionary representing the data to update in the
+row. The keys should be the column names and the values should
+be the corresponding values to update.</p></li>
+<li><p><strong>match</strong> (<em>dict</em>) – A dictionary representing the matching condition for
+the row to update. The keys should be the column name and the
+value should be the corresponding value to match.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the update was successful, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Supabase DB</a><ul>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB"><code class="docutils literal notranslate"><span class="pre">SupabaseDB</span></code></a><ul>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB.delete_row"><code class="docutils literal notranslate"><span class="pre">SupabaseDB.delete_row()</span></code></a></li>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB.find_row"><code class="docutils literal notranslate"><span class="pre">SupabaseDB.find_row()</span></code></a></li>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB.insert_row"><code class="docutils literal notranslate"><span class="pre">SupabaseDB.insert_row()</span></code></a></li>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB.select_row"><code class="docutils literal notranslate"><span class="pre">SupabaseDB.select_row()</span></code></a></li>
+<li><a class="reference internal" href="#supasaas.supabase_db.SupabaseDB.update_row"><code class="docutils literal notranslate"><span class="pre">SupabaseDB.update_row()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="supabase_client.html"
+                          title="previous chapter">Supabase Client</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="supabase_storage.html"
+                          title="next chapter">Supabase Storage</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/supabase_db.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="supabase_storage.html" title="Supabase Storage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="supabase_client.html" title="Supabase Client"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Modules</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Supabase DB</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Ashlynn Antrobus.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

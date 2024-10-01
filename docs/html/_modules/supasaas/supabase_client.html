@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>supasaas.supabase_client &#8212; SupaSaaS 2024-09-30 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bizstyle.css?v=658d757c" />
+    
+    <script src="../../_static/documentation_options.js?v=4d045338"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_client</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for supasaas.supabase_client</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span>
+
+<span class="kn">from</span> <span class="nn">decouple</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">supabase</span> <span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">create_client</span>
+<span class="kn">from</span> <span class="nn">supabase._sync.client</span> <span class="kn">import</span> <span class="n">SupabaseException</span>
+
+<span class="kn">from</span> <span class="nn">._logging.supabase_logger</span> <span class="kn">import</span> <span class="n">supabase_logger</span> <span class="k">as</span> <span class="n">default_logger</span>
+
+<span class="n">LogFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SupabaseLogin">
+<a class="viewcode-back" href="../../supabase_client.html#supasaas.supabase_client.SupabaseLogin">[docs]</a>
+<span class="k">class</span> <span class="nc">SupabaseLogin</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Supabase login details. Service role is optional.&quot;&quot;&quot;</span>
+
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">service_role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SupabaseLogin.from_config">
+<a class="viewcode-back" href="../../supabase_client.html#supasaas.supabase_client.SupabaseLogin.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a SupabaseLogin object from environment variables.&quot;&quot;&quot;</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">config</span><span class="p">(</span><span class="s2">&quot;SUPABASE_URL&quot;</span><span class="p">)</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">config</span><span class="p">(</span><span class="s2">&quot;SUPABASE_KEY&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">service_role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">config</span><span class="p">(</span><span class="s2">&quot;SUPABASE_SERVICE_ROLE&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">service_role</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+            <span class="n">service_role</span><span class="o">=</span><span class="n">service_role</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SupabaseClient">
+<a class="viewcode-back" href="../../supabase_client.html#supasaas.supabase_client.SupabaseClient">[docs]</a>
+<span class="k">class</span> <span class="nc">SupabaseClient</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Supabase client.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">supabase_login</span><span class="p">:</span> <span class="n">SupabaseLogin</span><span class="p">,</span>
+        <span class="n">log_function</span><span class="p">:</span> <span class="n">LogFunction</span> <span class="o">=</span> <span class="n">default_logger</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a Supabase client.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            supabase_login (SupabaseLogin): The Supabase login details.</span>
+<span class="sd">            log_function (LogFunction, optional): The log function to use.</span>
+<span class="sd">                Defaults to default_logger.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="n">supabase_login</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_client</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">key</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">service_role</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_client</span><span class="p">(</span>
+                <span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">service_role</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Client</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a Supabase client.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            url (str): The URL of the Supabase instance.</span>
+<span class="sd">            key (str): The API key of the Supabase instance.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Client: The initialized Supabase client.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            SupabaseException: If an error occurs during the client</span>
+<span class="sd">                initialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">create_client</span><span class="p">(</span><span class="n">supabase_url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">supabase_key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">SupabaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;initialize client&quot;</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="SupabaseClient.select_client">
+<a class="viewcode-back" href="../../supabase_client.html#supasaas.supabase_client.SupabaseClient.select_client">[docs]</a>
+    <span class="k">def</span> <span class="nf">select_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_service_role</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Client</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Selects the appropriate Supabase client based on the use_service_role</span>
+<span class="sd">        parameter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            use_service_role (bool, optional): Determines whether to use the</span>
+<span class="sd">                service role client or the default client. Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Client: The appropriate Supabase client.</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            Service role client should only be used for operations where a new</span>
+<span class="sd">                user row is being inserted. Otherwise use default client for</span>
+<span class="sd">                RLS policy on authenticated user.</span>
+<span class="sd">            If service_client is None -- no service role key was provided --</span>
+<span class="sd">                the default_client is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_client</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="k">if</span> <span class="n">use_service_role</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_client</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_client</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Ashlynn Antrobus.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

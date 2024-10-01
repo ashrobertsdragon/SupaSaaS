@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>supasaas.supabase_auth &#8212; SupaSaaS 2024-09-30 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bizstyle.css?v=658d757c" />
+    
+    <script src="../../_static/documentation_options.js?v=4d045338"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_auth</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for supasaas.supabase_auth</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span>
+
+<span class="kn">from</span> <span class="nn">gotrue._async.gotrue_client</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AuthInvalidCredentialsError</span><span class="p">,</span>
+    <span class="n">AuthSessionMissingError</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">gotrue.types</span> <span class="kn">import</span> <span class="n">AuthResponse</span><span class="p">,</span> <span class="n">UserResponse</span>
+<span class="kn">from</span> <span class="nn">supabase</span> <span class="kn">import</span> <span class="n">Client</span>
+
+<span class="kn">from</span> <span class="nn">supasaas._logging.supabase_logger</span> <span class="kn">import</span> <span class="n">supabase_logger</span> <span class="k">as</span> <span class="n">default_logger</span>
+<span class="kn">from</span> <span class="nn">supasaas._validators</span> <span class="kn">import</span> <span class="n">validate</span> <span class="k">as</span> <span class="n">default_validator</span>
+<span class="kn">from</span> <span class="nn">supasaas.supabase_client</span> <span class="kn">import</span> <span class="n">SupabaseClient</span>
+
+<span class="n">LogFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">ValidatorFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SupabaseAuth">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth">[docs]</a>
+<span class="k">class</span> <span class="nc">SupabaseAuth</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">client</span><span class="p">:</span> <span class="n">SupabaseClient</span><span class="p">,</span>
+        <span class="n">validator</span><span class="p">:</span> <span class="n">ValidatorFunction</span> <span class="o">=</span> <span class="n">default_validator</span><span class="p">,</span>
+        <span class="n">log_function</span><span class="p">:</span> <span class="n">LogFunction</span> <span class="o">=</span> <span class="n">default_logger</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">select_client</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_response</span> <span class="o">=</span> <span class="n">validator</span>
+
+<div class="viewcode-block" id="SupabaseAuth.sign_up">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth.sign_up">[docs]</a>
+    <span class="k">def</span> <span class="nf">sign_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AuthResponse</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signs up a user with the provided email and password.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            email (str): The email of the user.</span>
+<span class="sd">            password (str): The password of the user.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            AuthResponse: The response object containing the authentication</span>
+<span class="sd">                information.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AuthInvalidCredentialsError: If an error occurs during the sign up</span>
+<span class="sd">                process.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            sign_up(email=&quot;example@example.com&quot;, password=&quot;password123&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">sign_up</span><span class="p">({</span>
+                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">email</span><span class="p">,</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+            <span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate_response</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">expected_type</span><span class="o">=</span><span class="s2">&quot;tuple&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="n">AuthInvalidCredentialsError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;signup&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="SupabaseAuth.sign_in">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth.sign_in">[docs]</a>
+    <span class="k">def</span> <span class="nf">sign_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AuthResponse</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signs in a user with the provided email and password.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            email (str): The email of the user.</span>
+<span class="sd">            password (str): The password of the user.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            AuthResponse: The response object containing the authentication</span>
+<span class="sd">                information.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AuthInvalidCredentialsError: If an error occurs during the sign in</span>
+<span class="sd">                process.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            sign_in(email=&quot;example@example.com&quot;, password=&quot;password123&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">sign_in_with_password</span><span class="p">({</span>
+                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">email</span><span class="p">,</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+            <span class="p">})</span>
+        <span class="k">except</span> <span class="n">AuthInvalidCredentialsError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;login&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SupabaseAuth.sign_out">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth.sign_out">[docs]</a>
+    <span class="k">def</span> <span class="nf">sign_out</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signs out the currently authenticated user.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AuthInvalidCredentialsError: If an error occurs during the sign</span>
+<span class="sd">                out process.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            sign_out()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Supabase library suppresses sign out errors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">sign_out</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SupabaseAuth.reset_password">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth.reset_password">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the password for a user with the provided email.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            email (str): The email of the user.</span>
+<span class="sd">            domain (str): The domain of the application.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AuthInvalidCredentialsError: If an error occurs during the</span>
+<span class="sd">                password reset process.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            reset_password(email=&quot;example@example.com&quot;, domain=&quot;example.com&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Supabase library does not raise any errors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">reset_password_email</span><span class="p">(</span>
+            <span class="n">email</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;redirect_to&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">domain</span><span class="si">}</span><span class="s2">/reset-password.html&quot;</span><span class="p">}</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SupabaseAuth.update_user">
+<a class="viewcode-back" href="../../supabase_auth.html#supasaas.supabase_auth.SupabaseAuth.update_user">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updates</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UserResponse</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates a user with the provided updates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            updates (dict): A dictionary containing the updates to be made to</span>
+<span class="sd">                the user.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AuthInvalidCredentialsError: If an error occurs during the update</span>
+<span class="sd">                process.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            update_user(updates={&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30})</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">update_user</span><span class="p">(</span><span class="n">updates</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">AuthSessionMissingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;update user&quot;</span><span class="p">,</span>
+                <span class="n">updates</span><span class="o">=</span><span class="n">updates</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">raise</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_auth</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Ashlynn Antrobus.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

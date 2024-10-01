@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>supasaas.supabase_storage &#8212; SupaSaaS 2024-09-30 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bizstyle.css?v=658d757c" />
+    
+    <script src="../../_static/documentation_options.js?v=4d045338"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_storage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for supasaas.supabase_storage</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span>
+
+<span class="kn">from</span> <span class="nn">supabase</span> <span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">StorageException</span>
+
+<span class="kn">from</span> <span class="nn">supasaas._logging.supabase_logger</span> <span class="kn">import</span> <span class="n">supabase_logger</span> <span class="k">as</span> <span class="n">default_logger</span>
+<span class="kn">from</span> <span class="nn">supasaas._validators</span> <span class="kn">import</span> <span class="n">validate</span> <span class="k">as</span> <span class="n">default_validator</span>
+<span class="kn">from</span> <span class="nn">supasaas.supabase_client</span> <span class="kn">import</span> <span class="n">SupabaseClient</span>
+
+<span class="n">LogFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">ValidatorFunction</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SupabaseStorage">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage">[docs]</a>
+<span class="k">class</span> <span class="nc">SupabaseStorage</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">client</span><span class="p">:</span> <span class="n">SupabaseClient</span><span class="p">,</span>
+        <span class="n">validator</span><span class="p">:</span> <span class="n">ValidatorFunction</span> <span class="o">=</span> <span class="n">default_validator</span><span class="p">,</span>
+        <span class="n">log_function</span><span class="p">:</span> <span class="n">LogFunction</span> <span class="o">=</span> <span class="n">default_logger</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">select_client</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validator</span> <span class="o">=</span> <span class="n">validator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{}]</span>
+
+    <span class="k">def</span> <span class="nf">_use_storage_connection</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use context manager for connection to Supabase storage.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The name of the storage bucket.</span>
+<span class="sd">            action (str): The action being performed in the bucket).</span>
+<span class="sd">            **kwargs: Other commands being passed to the API.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">storage</span> <span class="k">as</span> <span class="n">storage_client</span><span class="p">:</span>
+            <span class="n">storage</span> <span class="o">=</span> <span class="n">storage_client</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">storage</span><span class="p">,</span> <span class="n">action</span><span class="p">)(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_response</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">response</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">expected_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the storage response from Supabase.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Any): The response object from the API call.</span>
+<span class="sd">            expected_type (type): The type the response is expected to be.</span>
+<span class="sd">            action (str): The storage action being performed.</span>
+<span class="sd">            bucket (str): The storage bucket the action was performed in.</span>
+<span class="sd">            **kwargs: Other keyword arguments to be logged if validation</span>
+<span class="sd">                fails.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if validation passes, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="SupabaseStorage.upload_file">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage.upload_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">upload_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">file_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+        <span class="n">file_mimetype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Upload a file to a Supabase storage bucket.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The bucket the file will be uploaded to.</span>
+<span class="sd">            upload_path (str): The folder and filename for the file to be</span>
+<span class="sd">                uploaded to.</span>
+<span class="sd">            file_content (bytes): The file, read as an IO byte-stream, to be</span>
+<span class="sd">                uploaded.</span>
+<span class="sd">            file_mimetype (str): The file&#39;s mimetype.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if upload was successful, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span>
+                <span class="n">bucket</span><span class="p">,</span>
+                <span class="s2">&quot;upload&quot;</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">upload_path</span><span class="p">,</span>
+                <span class="n">file</span><span class="o">=</span><span class="n">file_content</span><span class="p">,</span>
+                <span class="n">file_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="n">file_mimetype</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">StorageException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;upload file&quot;</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">upload_path</span><span class="o">=</span><span class="n">upload_path</span><span class="p">,</span>
+                <span class="n">file_content</span><span class="o">=</span><span class="n">file_content</span><span class="p">,</span>
+                <span class="n">file_mimetype</span><span class="o">=</span><span class="n">file_mimetype</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SupabaseStorage.delete_file">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage.delete_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a file from a Supabase storage bucket</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The storage bucket the file will be deleted from.</span>
+<span class="sd">            file_path (str): The path inside the bucket for the file to be</span>
+<span class="sd">                deleted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if file deletion was successful, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;remove&quot;</span><span class="p">,</span> <span class="n">paths</span><span class="o">=</span><span class="p">[</span><span class="n">file_path</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">StorageException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;delete file&quot;</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">file_path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SupabaseStorage.download_file">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage.download_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">download_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Download a file from a Supabase storage bucket.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The storage bucket the file will be found in.</span>
+<span class="sd">            download_path (str): The path inside the bucket for the file to be</span>
+<span class="sd">                downloaded.</span>
+<span class="sd">            destination_path (Path): The local path to download the file to,</span>
+<span class="sd">                as a pathlib object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if file was downloaded, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">destination_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span>
+                    <span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;download&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">download_path</span>
+                <span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">StorageException</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;download file&quot;</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">download_path</span><span class="o">=</span><span class="n">download_path</span><span class="p">,</span>
+                <span class="n">destination_path</span><span class="o">=</span><span class="n">destination_path</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SupabaseStorage.list_files">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage.list_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">list_files</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List the files in a Supabase storage bucket or folder.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The storage bucket to retrieve the list of files</span>
+<span class="sd">                from.</span>
+<span class="sd">            folder (str): The name of the folder within the storage bucket to</span>
+<span class="sd">                retrieve the list of files from. Optional, defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[dict[str, str]]: A list of dictionaries containing</span>
+<span class="sd">                information about files in the bucket or folder or empty list</span>
+<span class="sd">                if there is an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;list files&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">folder</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span>
+                    <span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">folder</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">StorageException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_response</span><span class="p">(</span>
+            <span class="n">response</span><span class="p">,</span> <span class="n">expected_type</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_value</span></div>
+
+
+<div class="viewcode-block" id="SupabaseStorage.create_signed_url">
+<a class="viewcode-back" href="../../supabase_storage.html#supasaas.supabase_storage.SupabaseStorage.create_signed_url">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_signed_url</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">download_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">expires_in</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">3600</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a signed download URL to a file in a Supabase storage bucket.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket (str): The storage bucket the download file is in.</span>
+<span class="sd">            download_path (str): The path to the file in the bucket.</span>
+<span class="sd">            expires_in (in): Optional. Number of seconds the signed url is</span>
+<span class="sd">                valid for. Defaults to 3600 (one hour).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The signed url for file download or empty string if there is</span>
+<span class="sd">                an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;create signed url&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_storage_connection</span><span class="p">(</span>
+                <span class="n">bucket</span><span class="p">,</span>
+                <span class="s2">&quot;create_signed_url&quot;</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">download_path</span><span class="p">,</span>
+                <span class="n">expires_in</span><span class="o">=</span><span class="n">expires_in</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">StorageException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">download_path</span><span class="o">=</span><span class="n">download_path</span><span class="p">,</span>
+                <span class="n">expires_in</span><span class="o">=</span><span class="n">expires_in</span><span class="p">,</span>
+                <span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;signedURL&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_response</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">download_path</span><span class="o">=</span><span class="n">download_path</span><span class="p">,</span>
+            <span class="n">expires_in</span><span class="o">=</span><span class="n">expires_in</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">url</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SupaSaaS 2024-09-30 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">supasaas.supabase_storage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Ashlynn Antrobus.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>
