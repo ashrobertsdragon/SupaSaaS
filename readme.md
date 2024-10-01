@@ -23,7 +23,7 @@ SupaSaaS requires several environment variables to be set for proper configurati
 
 - SUPABASE_URL: The URL of your Supabase project.
 - SUPABASE_KEY: The API key for your Supabase project.
-- SUPABASE_SERVICE_ROLE: The service role key for your Supabase project.
+- SUPABASE_SERVICE_ROLE: (Optional) The service role key for your Supabase project.
 
 ## Usage
 
