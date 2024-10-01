@@ -34,6 +34,22 @@ def test_initializes_from_config(mocker):
     assert login.service_role == "example_service_role"
 
 
+def test_initializes_without_service_role(mocker):
+    mocker.patch(
+        "supasaas.supabase_client.config",
+        side_effect=lambda key: {
+            "SUPABASE_URL": "https://example.supabase.co",
+            "SUPABASE_KEY": "example_key",
+        }[key],
+    )
+
+    login = SupabaseLogin.from_config()
+
+    assert login.url == "https://example.supabase.co"
+    assert login.key == "example_key"
+    assert login.service_role is None
+
+
 def test_missing_supabase_url(mocker):
     mocker.patch(
         "supasaas.supabase_client.config",
@@ -58,6 +74,19 @@ def test_supabase_client_valid(mocker, supabase_login):
     )
     assert client.default_client == mock_initialize_client.return_value
     assert client.service_client == mock_initialize_client.return_value
+
+
+def test_supabase_client_no_service_role(mocker):
+    mocker.patch(
+        "supasaas.supabase_client.config",
+        side_effect=lambda key: {
+            "SUPABASE_URL": "https://example.supabase.co",
+            "SUPABASE_KEY": "example_key",
+        }[key],
+    )
+    login = SupabaseLogin.from_config()
+    client = SupabaseClient(login)
+    assert client.service_client == client.default_client
 
 
 def test_supabase_client_accepts_custom_logger(mocker, supabase_login):
