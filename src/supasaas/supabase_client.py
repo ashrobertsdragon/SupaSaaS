@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
@@ -35,11 +37,21 @@ class SupabaseLogin(BaseModel):
 
 
 class SupabaseClient:
+    """Supabase client."""
+
     def __init__(
         self,
         supabase_login: SupabaseLogin,
         log_function: LogFunction = default_logger,
     ):
+        """
+        Initializes a Supabase client.
+
+        Args:
+            supabase_login (SupabaseLogin): The Supabase login details.
+            log_function (LogFunction, optional): The log function to use.
+                Defaults to default_logger.
+        """
         self.login = supabase_login
         self.log = log_function
         self.default_client: Client = self._initialize_client(

@@ -1,3 +1,5 @@
+"""Optional loguru configuration for SupaSaaS including predefined handlers"""
+
 import sys
 
 from loguru import logger

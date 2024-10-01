@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
@@ -187,8 +189,8 @@ class SupabaseDB:
         Args:
             table_name (str): The name of the table to delete the row from.
             match (dict): A dictionary representing the matching condition for
-                the row to delete. The keys should be the column name and the
-                value should be the corresponding value to match.
+            the row to delete. The keys should be the column name and the value
+            should be the corresponding value to match.
 
         Returns:
             bool: True if the row deletion was successful, False otherwise.
@@ -347,6 +349,21 @@ class SupabaseDB:
         within_period: int,
         columns: list[str] | None = None,
     ) -> list[dict]:
+        """
+        Retrieves a row or columns from a table based on a matching condition
+        within a specified period.
+
+        Args:
+            table_name (str): The name of the table to retrieve the row from.
+            match_column (str): The name of the column to match on.
+            within_period (int): The number of seconds within which to search
+            for the matching row.
+            columns (List[str], optional): A list of column names to retrieve
+            from the row. Defaults to ["*"], which retrieves all columns.
+
+        Returns:
+            List[dict]: A list of dictionaries representing the retrieved row
+        """
         action: str = "find row"
         if columns is None:
             columns = ["*"]
