@@ -227,6 +227,7 @@ class SupabaseDB:
         match: dict,
         match_type: type,
         columns: list[str] | None = None,
+        use_service_role: bool = True,
     ) -> list[dict]:
         """
         Retrieves a row or columns from a table based on a matching condition.
@@ -249,7 +250,7 @@ class SupabaseDB:
         action = "select"
         column_str = "*" if columns is None else ", ".join(columns)
 
-        db_client: Client = self._get_client(use_service_role=True)
+        db_client: Client = self._get_client(use_service_role=use_service_role)
         try:
             match_name, match_value = self._get_filter(
                 match,
@@ -265,6 +266,7 @@ class SupabaseDB:
                 ),
             )
             if not response.data:
+                self.log(level="info", action=action, response=response)
                 raise PostgrestAPIError({
                     "message": f"Failed to select row into {table_name}"
                 })
@@ -291,7 +293,13 @@ class SupabaseDB:
             return self.empty_value
 
     def update_row(
-        self, *, table_name: str, info: dict, match: dict, match_type: type
+        self,
+        *,
+        table_name: str,
+        info: dict,
+        match: dict,
+        match_type: type,
+        use_service_role: bool = True,
     ) -> bool:
         """
         Updates a row in the table with data when the row matches a column.
@@ -310,7 +318,7 @@ class SupabaseDB:
             bool: True if the update was successful, False otherwise.
         """
         action: str = "update"
-        db_client: Client = self._get_client(use_service_role=False)
+        db_client: Client = self._get_client(use_service_role=use_service_role)
         try:
             match_name, match_value = self._get_filter(
                 match,
@@ -348,6 +356,7 @@ class SupabaseDB:
         match_column: str,
         within_period: int,
         columns: list[str] | None = None,
+        use_service_role: bool = False,
     ) -> list[dict]:
         """
         Retrieves a row or columns from a table based on a matching condition
@@ -368,7 +377,7 @@ class SupabaseDB:
         if columns is None:
             columns = ["*"]
 
-        db_client: Client = self._get_client(use_service_role=False)
+        db_client: Client = self._get_client(use_service_role=use_service_role)
         try:
             response = self._execute_query(
                 db_client=db_client,
