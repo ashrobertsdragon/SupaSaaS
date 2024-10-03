@@ -979,7 +979,6 @@ dev = [
     { name = "pytest" },
     { name = "pytest-mock" },
     { name = "ruff" },
-    { name = "sphinx" },
 ]
 
 [package.metadata]
@@ -995,7 +994,6 @@ dev = [
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "ruff", specifier = ">=0.6.8" },
-    { name = "sphinx", specifier = ">=8.0.2" },
 ]
 
 [[package]]
