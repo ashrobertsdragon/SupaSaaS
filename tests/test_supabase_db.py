@@ -284,9 +284,9 @@ def test_get_filter_value_wrong_type(mocker, mock_client, mock_logger):
 
 def test_insert_row(mocker, mock_client):
     db = SupabaseDB(mock_client)
-    row = {"id": 1, "name": "John"}
+    row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -303,9 +303,9 @@ def test_insert_row(mocker, mock_client):
 
 
 def test_insert_row_uses_correct_client(mocker, mock_client):
-    row = {"id": 1, "name": "John"}
+    row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(SupabaseDB, "_execute_query", mock_execute)
@@ -364,9 +364,9 @@ def test_insert_row_catches_exception_from_supabase(
 def test_delete_row(mocker, mock_client):
     db = SupabaseDB(mock_client)
     match = {"id": 1}
-    row = {"id": 1, "name": "John"}
+    row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -385,9 +385,9 @@ def test_delete_row(mocker, mock_client):
 def test_delete_row_uses_correct_client(mocker, mock_client):
     db = SupabaseDB(mock_client)
     match = {"id": 1}
-    row = {"id": 1, "name": "John"}
+    row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -480,7 +480,7 @@ def test_select_row(mocker, mock_client):
     match = {"id": 1}
     row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -507,7 +507,7 @@ def test_select_row_accepts_custom_columns(
     row = [{"name": "John", "age": 30}]
     columns = ["name", "age"]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -612,7 +612,7 @@ def test_update_row(mocker, mock_client):
     info = {"name": "John"}
     row = [{"id": 1, "name": "John"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
@@ -718,7 +718,7 @@ def test_find_row(mocker, mock_client):
     within_period = 1
     row = [{"id": 1, "date": "2024-09-30"}]
     mock_response = mocker.Mock()
-    mock_response.data = [row]
+    mock_response.data = row
     mock_response.count = 1
     mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
