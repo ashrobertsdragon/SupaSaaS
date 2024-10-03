@@ -13,12 +13,27 @@ from ._logging.supabase_logger import supabase_logger as default_logger
 LogFunction: TypeAlias = Callable[[str, str, bool, Any, Any], None]
 
 
+class ServiceRoleNoteSet(Exception):
+    """Exception raised when a service role note is set."""
+
+    pass
+
+
 class SupabaseLogin(BaseModel):
     """Supabase login details. Service role is optional."""
 
     url: str
     key: str
     service_role: str | None = None
+    log_function: LogFunction = default_logger
+
+    def __post_init__(self):
+        self.log(
+            level="info",
+            action=f"Supabase url {',' if self.service_role else 'and'} key "
+            f"{', and service role key' if self.service_role else ''}"
+            " initialized",
+        )
 
     @classmethod
     def from_config(cls):
@@ -57,11 +72,13 @@ class SupabaseClient:
         self.default_client: Client = self._initialize_client(
             self.login.url, self.login.key
         )
+        self.log(level="info", action="Default client initialized")
         self.service_client: Client | None = None
         if self.login.service_role:
             self.service_client: Client = self._initialize_client(
                 url=self.login.url, key=self.login.service_role
             )
+            self.log(level="info", action="Service role client initialized")
 
     def _initialize_client(self, url: str, key: str) -> Client:
         """
@@ -99,13 +116,14 @@ class SupabaseClient:
         Returns:
             Client: The appropriate Supabase client.
 
+        Raises:
+            ServiceRoleNoteSet: If service_client is None and use_service_role
+                is True.
         Notes:
             Service role client should only be used for operations where a new
                 user row is being inserted. Otherwise use default client for
                 RLS policy on authenticated user.
-            If service_client is None -- no service role key was provided --
-                the default_client is returned.
         """
-        if not self.service_client:
-            return self.default_client
+        if not self.service_client and use_service_role:
+            raise ServiceRoleNoteSet("No service role key provided.")
         return self.service_client if use_service_role else self.default_client
