@@ -285,7 +285,10 @@ def test_get_filter_value_wrong_type(mocker, mock_client, mock_logger):
 def test_insert_row(mocker, mock_client):
     db = SupabaseDB(mock_client)
     row = {"id": 1, "name": "John"}
-    mock_execute = mocker.Mock(return_value={"data": [row], "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     assert db.insert_row(table_name="test_table", data=row)
@@ -301,7 +304,10 @@ def test_insert_row(mocker, mock_client):
 
 def test_insert_row_uses_correct_client(mocker, mock_client):
     row = {"id": 1, "name": "John"}
-    mock_execute = mocker.Mock(return_value={"data": [row], "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(SupabaseDB, "_execute_query", mock_execute)
 
     db = SupabaseDB(mock_client)
@@ -313,7 +319,10 @@ def test_insert_row_uses_correct_client(mocker, mock_client):
 def test_insert_row_raises_error_for_empty_response(
     mocker, mock_client, mock_logger
 ):
-    mock_execute = mocker.Mock(return_value={"data": [], "count": 0})
+    mock_response = mocker.Mock()
+    mock_response.data = []
+    mock_response.count = 0
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(SupabaseDB, "_execute_query", mock_execute)
     db = SupabaseDB(mock_client, mock_validator, mock_logger)
     row = {"id": 1, "name": "John"}
@@ -356,7 +365,10 @@ def test_delete_row(mocker, mock_client):
     db = SupabaseDB(mock_client)
     match = {"id": 1}
     row = {"id": 1, "name": "John"}
-    mock_execute = mocker.Mock(return_value={"data": [row], "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     assert db.delete_row(table_name="test_table", match=match, match_type=int)
@@ -374,7 +386,10 @@ def test_delete_row_uses_correct_client(mocker, mock_client):
     db = SupabaseDB(mock_client)
     match = {"id": 1}
     row = {"id": 1, "name": "John"}
-    mock_execute = mocker.Mock(return_value={"data": [row], "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     db.delete_row(table_name="test_table", match=match, match_type=int)
@@ -464,7 +479,10 @@ def test_select_row(mocker, mock_client):
     db = SupabaseDB(mock_client)
     match = {"id": 1}
     row = [{"id": 1, "name": "John"}]
-    mock_execute = mocker.Mock(return_value={"data": row, "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     result = db.select_row(
@@ -488,7 +506,10 @@ def test_select_row_accepts_custom_columns(
     match = {"id": 1}
     row = [{"name": "John", "age": 30}]
     columns = ["name", "age"]
-    mock_execute = mocker.Mock(return_value={"data": row, "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     result = db.select_row(
@@ -590,7 +611,10 @@ def test_update_row(mocker, mock_client):
     match = {"id": 1}
     info = {"name": "John"}
     row = [{"id": 1, "name": "John"}]
-    mock_execute = mocker.Mock(return_value={"data": row, "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     assert db.update_row(
@@ -693,7 +717,10 @@ def test_find_row(mocker, mock_client):
     match_column = "date"
     within_period = 1
     row = [{"id": 1, "date": "2024-09-30"}]
-    mock_execute = mocker.Mock(return_value={"data": row, "count": 1})
+    mock_response = mocker.Mock()
+    mock_response.data = [row]
+    mock_response.count = 1
+    mock_execute = mocker.Mock(return_value=mock_response)
     mocker.patch.object(db, "_execute_query", mock_execute)
 
     result = db.find_row(

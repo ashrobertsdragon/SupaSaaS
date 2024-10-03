@@ -166,7 +166,7 @@ class SupabaseDB:
                 table_name=table_name,
                 query=lambda table: table.insert(data),
             )
-            if not response.get("data"):
+            if not response.data:
                 raise PostgrestAPIError({
                     "message": f"Failed to insert row into {table_name}"
                 })
@@ -264,7 +264,7 @@ class SupabaseDB:
                     match_name, match_value
                 ),
             )
-            if not response.get("data"):
+            if not response.data:
                 raise PostgrestAPIError({
                     "message": f"Failed to select row into {table_name}"
                 })
@@ -279,14 +279,14 @@ class SupabaseDB:
             )
             return self.empty_value
         if self._validate_response(
-            response.get("data"),
+            response.data,
             expected_type=list,
             action=action,
             table_name=table_name,
             column_str=column_str,
             match=match,
         ):
-            return response["data"]
+            return response.data
         else:
             return self.empty_value
 
@@ -325,7 +325,7 @@ class SupabaseDB:
                     match_name, match_value
                 ),
             )
-            if not response.get("data"):
+            if not response.data:
                 raise PostgrestAPIError({
                     "message": f"Failed to update row into {table_name}"
                 })
@@ -389,8 +389,8 @@ class SupabaseDB:
             )
             return self.empty_value
 
-        if response.get("data") and self._validate_response(
-            response.get("data"),
+        if response.data and self._validate_response(
+            response.data,
             expected_type=list,
             action=action,
             table_name=table_name,
@@ -398,5 +398,5 @@ class SupabaseDB:
             within_period=within_period,
             columns=columns,
         ):
-            return response["data"]
+            return response.data
         return self.empty_value
