@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
-from decouple import config
+from decouple import UndefinedValueError, config
 from pydantic import BaseModel
 from supabase import Client, create_client
 from supabase._sync.client import SupabaseException
@@ -27,7 +27,7 @@ class SupabaseLogin(BaseModel):
         key: str = config("SUPABASE_KEY")
         try:
             service_role: str = config("SUPABASE_SERVICE_ROLE")
-        except KeyError:
+        except (KeyError, UndefinedValueError):
             service_role = None
         return cls(
             url=url,
