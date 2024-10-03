@@ -25,12 +25,13 @@ class SupabaseLogin(BaseModel):
     url: str
     key: str
     service_role: str | None = None
-    log_function: LogFunction = default_logger
+    log: LogFunction = default_logger
 
-    def __post_init__(self):
+    def model_post_init(self, __context: dict):
+        """Log url/key loading post init."""
         self.log(
             level="info",
-            action=f"Supabase url {',' if self.service_role else 'and'} key "
+            action=f"Supabase url{',' if self.service_role else 'and'} key"
             f"{', and service role key' if self.service_role else ''}"
             " initialized",
         )
