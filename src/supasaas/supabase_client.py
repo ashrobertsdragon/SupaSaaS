@@ -13,8 +13,8 @@ from ._logging.supabase_logger import supabase_logger as default_logger
 LogFunction: TypeAlias = Callable[[str, str, bool, Any, Any], None]
 
 
-class ServiceRoleNoteSet(Exception):
-    """Exception raised when a service role note is set."""
+class ServiceRoleNotSet(Exception):
+    """Exception raised when a service role key is not set."""
 
     pass
 
@@ -70,7 +70,7 @@ class SupabaseClient:
         """
         self.login = supabase_login
         self.log = log_function
-        self.default_client: Client = self._initialize_client(
+        self.default_client: Client | None = self._initialize_client(
             self.login.url, self.login.key
         )
         self.log(level="info", action="Default client initialized")
@@ -104,6 +104,7 @@ class SupabaseClient:
                 action="initialize client",
                 exception=e,
             )
+        raise
 
     def select_client(self, use_service_role: bool = False) -> Client:
         """
@@ -126,11 +127,13 @@ class SupabaseClient:
                 RLS policy on authenticated user.
         """
         if not self.service_client and use_service_role:
-            raise ServiceRoleNoteSet("No service role key provided.")
+            raise ServiceRoleNotSet("No service role key provided.")
         return self.service_client if use_service_role else self.default_client
 
     def refresh_clients(self):
         "Refreshes the default and service role clients."
+        self.default_client = None
+        self.service_client = None
         self.default_client = self._initialize_client(
             self.login.url, self.login.key
         )
@@ -138,4 +141,7 @@ class SupabaseClient:
             self.service_client = self._initialize_client(
                 url=self.login.url, key=self.login.service_role
             )
+
+        if self.default_client is None:
+            raise SupabaseException("Clients not refreshed")
         self.log(level="info", action="Clients refreshed")
