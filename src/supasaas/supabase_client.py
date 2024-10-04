@@ -128,3 +128,15 @@ class SupabaseClient:
         if not self.service_client and use_service_role:
             raise ServiceRoleNoteSet("No service role key provided.")
         return self.service_client if use_service_role else self.default_client
+
+
+def refresh_clients(self):
+    "Refreshes the default and service role clients."
+    self.default_client = self._initialize_client(
+        self.login.url, self.login.key
+    )
+    if self.login.service_role:
+        self.service_client = self._initialize_client(
+            url=self.login.url, key=self.login.service_role
+        )
+    self.log(level="info", action="Clients refreshed")
