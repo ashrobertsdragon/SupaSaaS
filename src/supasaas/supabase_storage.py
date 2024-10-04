@@ -32,14 +32,31 @@ class SupabaseStorage:
         """
         Use context manager for connection to Supabase storage.
 
+        Checks if the client has been closed. If so, it refreshes the client
+        by calling the `refresh_clients` method and retries the action.
+
         Args:
             bucket (str): The name of the storage bucket.
             action (str): The action being performed in the bucket).
             **kwargs: Other commands being passed to the API.
         """
-        with self.client.storage as storage_client:
-            storage = storage_client.from_(bucket)
-            return getattr(storage, action)(**kwargs)
+        try:
+            with self.client.storage as storage_client:
+                storage = storage_client.from_(bucket)
+                return getattr(storage, action)(**kwargs)
+        except RuntimeError as e:
+            if "Cannot send a request, as the client has been closed." in str(
+                e
+            ):
+                self._refresh_client()
+                return self._use_storage_connection(bucket, action, **kwargs)
+            raise
+
+    def _refresh_client(self):
+        """
+        Refresh the Supabase client by re-initializing the internal clients.
+        """
+        self.client.refresh_clients()
 
     def _validate_response(
         self,

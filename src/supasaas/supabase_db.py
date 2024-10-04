@@ -32,10 +32,16 @@ class SupabaseDB:
         return self.client.select_client(use_service_role)
 
     def _execute_query(
-        self, db_client: Client, table_name: str, query: Callable
+        self,
+        use_service_role: bool,
+        table_name: str,
+        query_func: Callable,
     ) -> PostgrestAPIResponse:
         """
         Execute the database query on the table with the correct client.
+
+        Checks if the client has been closed. If so, it refreshes the client
+        by calling the `refresh_clients` method and retries the action.
 
         Args:
             db_client (Client): The Supabase client with the correct
@@ -48,9 +54,27 @@ class SupabaseDB:
             PostgrestAPIResponse: The json response object with a data list and
                 count integer.
         """
-        with db_client.postgrest as postgrest:
-            table = postgrest.from_(table_name)
-            return query(table).execute()
+        db_client: Client = self._get_client(use_service_role)
+        try:
+            with db_client.postgrest as postgrest:
+                table = postgrest.from_(table_name)
+                return query_func(table).execute()
+        except RuntimeError as e:
+            if "Cannot send a request, as the client has been closed." in str(
+                e
+            ):
+                self._refresh_client()
+                return self._execute_query(
+                    use_service_role, table_name, query_func
+                )
+            raise
+
+    def _refresh_client(self):
+        """
+        Refresh the Supabase client by re-initializing the internal clients.
+        """
+        self.log(level="info", action="Calling for new clients")
+        self.client.refresh_clients()
 
     def _validate_response(
         self,
@@ -159,12 +183,11 @@ class SupabaseDB:
             bool: True if the update was successful, False otherwise.
         """
 
-        db_client: Client = self._get_client(use_service_role)
         try:
             response = self._execute_query(
-                db_client=db_client,
+                use_service_role=use_service_role,
                 table_name=table_name,
-                query=lambda table: table.insert(data),
+                query_func=lambda table: table.insert(data),
             )
             if not response.data:
                 raise PostgrestAPIError({
@@ -196,7 +219,6 @@ class SupabaseDB:
             bool: True if the row deletion was successful, False otherwise.
         """
         action: str = "delete"
-        db_client: Client = self._get_client(use_service_role=False)
         try:
             match_name, match_value = self._get_filter(
                 match,
@@ -205,9 +227,11 @@ class SupabaseDB:
                 table_name=table_name,
             )
             self._execute_query(
-                db_client=db_client,
+                use_service_role=False,
                 table_name=table_name,
-                query=lambda table: table.delete.eq(match_name, match_value),
+                query_func=lambda table: table.delete.eq(
+                    match_name, match_value
+                ),
             )
             return True
         except (PostgrestAPIError, ValueError, TypeError) as e:
@@ -250,7 +274,6 @@ class SupabaseDB:
         action = "select"
         column_str = "*" if columns is None else ", ".join(columns)
 
-        db_client: Client = self._get_client(use_service_role=use_service_role)
         try:
             match_name, match_value = self._get_filter(
                 match,
@@ -259,9 +282,9 @@ class SupabaseDB:
                 table_name=table_name,
             )
             response = self._execute_query(
-                db_client=db_client,
+                use_service_role=use_service_role,
                 table_name=table_name,
-                query=lambda table: table.select(column_str).eq(
+                query_func=lambda table: table.select(column_str).eq(
                     match_name, match_value
                 ),
             )
@@ -318,7 +341,7 @@ class SupabaseDB:
             bool: True if the update was successful, False otherwise.
         """
         action: str = "update"
-        db_client: Client = self._get_client(use_service_role=use_service_role)
+
         try:
             match_name, match_value = self._get_filter(
                 match,
@@ -327,9 +350,9 @@ class SupabaseDB:
                 table_name=table_name,
             )
             response = self._execute_query(
-                db_client=db_client,
+                use_service_role=use_service_role,
                 table_name=table_name,
-                query=lambda table: table.update(info).eq(
+                query_func=lambda table: table.update(info).eq(
                     match_name, match_value
                 ),
             )
@@ -377,12 +400,11 @@ class SupabaseDB:
         if columns is None:
             columns = ["*"]
 
-        db_client: Client = self._get_client(use_service_role=use_service_role)
         try:
             response = self._execute_query(
-                db_client=db_client,
+                use_service_role=use_service_role,
                 table_name=table_name,
-                query=lambda table: table.select(columns).lte(
+                query_func=lambda table: table.select(columns).lte(
                     match_column, within_period
                 ),
             )
