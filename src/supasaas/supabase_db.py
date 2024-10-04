@@ -205,7 +205,12 @@ class SupabaseDB:
         return True
 
     def delete_row(
-        self, *, table_name: str, match: dict, match_type: type
+        self,
+        *,
+        table_name: str,
+        match: dict,
+        match_type: type,
+        use_service_role: bool = False,
     ) -> bool:
         """
         Deletes a row from a table based on a matching condition.
@@ -214,6 +219,12 @@ class SupabaseDB:
             match (dict): A dictionary representing the matching condition for
             the row to delete. The keys should be the column name and the value
             should be the corresponding value to match.
+            match_type (type): The type of the value in the match dictionary.
+            use_service_role (bool, optional): Determines whether to use the
+            service role client or the default client. Service role client
+            should only be used for operations where there is no logged in
+            user. Otherwise use default client for RLS policy on authenticated
+            user. Defaults to False.
 
         Returns:
             bool: True if the row deletion was successful, False otherwise.
@@ -227,7 +238,7 @@ class SupabaseDB:
                 table_name=table_name,
             )
             self._execute_query(
-                use_service_role=False,
+                use_service_role=use_service_role,
                 table_name=table_name,
                 query_func=lambda table: table.delete.eq(
                     match_name, match_value
@@ -251,7 +262,7 @@ class SupabaseDB:
         match: dict,
         match_type: type,
         columns: list[str] | None = None,
-        use_service_role: bool = True,
+        use_service_role: bool = False,
     ) -> list[dict]:
         """
         Retrieves a row or columns from a table based on a matching condition.
@@ -259,12 +270,16 @@ class SupabaseDB:
         Args:
             table_name (str): The name of the table to retrieve the row from.
             match (dict): A dictionary representing the matching condition.
-                The key should be the column name and the value should be
-                the corresponding value to match.
-            ValueError: If the match argument is not a dictionary, or
-                table_name is not a string.
-            columns (List[str], optional): A list of column names to retrieve
-                from the row. Defaults to ["*"], which retrieves all columns.
+            The key should be the column name and the value should be
+            the corresponding value to match.
+            match_type (type): The type of the value in the match dictionary.
+            columns (list[str], optional): A list of column names to retrieve
+                from the row. Defaults to None, which retrieves all columns.
+            use_service_role (bool, optional): Determines whether to use the
+                service role client or the default client. Service role client
+                should only be used for operations where there is no logged in
+                user. Otherwise use default client for RLS policy on
+                authenticated user. Defaults to False.
 
         Returns:
             List[dict]: A list of dictionaries representing the retrieved row
@@ -322,7 +337,7 @@ class SupabaseDB:
         info: dict,
         match: dict,
         match_type: type,
-        use_service_role: bool = True,
+        use_service_role: bool = False,
     ) -> bool:
         """
         Updates a row in the table with data when the row matches a column.
@@ -336,6 +351,12 @@ class SupabaseDB:
             match (dict): A dictionary representing the matching condition for
                 the row to update. The keys should be the column name and the
                 value should be the corresponding value to match.
+            match_type (type): The type of the value in the match dictionary.
+            use_service_role (bool, optional): Determines whether to use the
+                service role client or the default client. Service role client
+                should only be used for operations where there is no logged in
+                user. Otherwise use default client for RLS policy on
+                authenticated user. Defaults to False.
 
         Returns:
             bool: True if the update was successful, False otherwise.
@@ -389,22 +410,26 @@ class SupabaseDB:
             table_name (str): The name of the table to retrieve the row from.
             match_column (str): The name of the column to match on.
             within_period (int): The number of seconds within which to search
-            for the matching row.
-            columns (List[str], optional): A list of column names to retrieve
-            from the row. Defaults to ["*"], which retrieves all columns.
+                for the matching row.
+            columns (list[str], optional): A list of column names to retrieve
+                from the row. Defaults to None, which retrieves all columns.
+            use_service_role (bool, optional): Determines whether to use the
+                service role client or the default client. Service role client
+                should only be used for operations where there is no logged in
+                user. Otherwise use default client for RLS policy on
+                authenticated user. Defaults to False.
 
         Returns:
             List[dict]: A list of dictionaries representing the retrieved row
         """
         action: str = "find row"
-        if columns is None:
-            columns = ["*"]
+        column_str = "*" if columns is None else ", ".join(columns)
 
         try:
             response = self._execute_query(
                 use_service_role=use_service_role,
                 table_name=table_name,
-                query_func=lambda table: table.select(columns).lte(
+                query_func=lambda table: table.select(column_str).lte(
                     match_column, within_period
                 ),
             )
