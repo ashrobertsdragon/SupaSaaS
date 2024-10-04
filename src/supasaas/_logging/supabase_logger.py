@@ -39,15 +39,13 @@ def construct_message(
     Returns:
         str: The log message body formatted as a string.
     """
-    messages = [
-        f"Error performing {action} with"
-        if is_error
-        else f"{action} returned",
-        f" {arg_str}{kwarg_str}",
-    ]
-    if exception:
-        messages.append(f"\nException: {exception}")
-    return "".join(messages)
+    prefix: str = "Error performing " if is_error else ""
+    if arg_str or kwarg_str:
+        connector: str = "with " if is_error else " returned "
+    else:
+        connector = ""
+    exc_str = f"\nException: {exception}" if exception else ""
+    return f"{prefix}{action}{connector}{arg_str}{kwarg_str}{exc_str}"
 
 
 def supabase_logger(level: str, action: str, *args, **kwargs) -> None:
