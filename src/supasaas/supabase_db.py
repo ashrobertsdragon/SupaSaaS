@@ -414,30 +414,43 @@ class SupabaseDB:
         action = "select single"
         column_str = "*" if columns is None else ", ".join(columns)
 
+
         try:
-            match_name, filter_enum, match_value = (
-                self._create_filter_condition(
-                    match,
-                    expected_value_type=match_type,
-                    filter_type=filter_type,
-                    action=action,
-                    table_name=table_name,
+            if match is not None:
+                match_name, filter_enum, match_value = (
+                    self._create_filter_condition(
+                        match,
+                        expected_value_type=match_type,
+                        filter_type=filter_type,
+                        action=action,
+                        table_name=table_name,
+                    )
                 )
-            )
-            response = (
-                self._execute_query(
-                    use_service_role=use_service_role,
-                    table_name=table_name,
-                    query_func=lambda table: table.select(column_str).filter(
-                        match_name, filter_enum, match_value
-                    ),
-                ),
-            )
-            if not response.data:
-                self.log(level="info", action=action, response=response)
-                raise PostgrestAPIError({
-                    "message": f"Failed to select row into {table_name}"
-                })
+                response = (
+                    self._execute_query(
+                        use_service_role=use_service_role,
+                        table_name=table_name,
+                        query_func=lambda table: table.select(column_str).filter(
+                            match_name, filter_enum, match_value
+                        )
+                    )
+                )
+            else:
+                 response = (
+                    self._execute_query(
+                        use_service_role=use_service_role,
+                        table_name=table_name,
+                        query_func=lambda table: table.select(column_str)
+                    )
+                )
+            try:
+                if not response.data:
+                    self.log(level="info", action=action, response=response)
+                    raise PostgrestAPIError({
+                        "message": f"Failed to select row into {table_name}"
+                    })
+            except AttributeError:
+                self.log(level="debug", action="parsing data attribute", table_name=table_name, response=response)
         except (PostgrestAPIError, ValueError, TypeError) as e:
             self.log(
                 level="error",
