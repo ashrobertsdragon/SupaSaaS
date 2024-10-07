@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any, TypeAlias
 
 from postgrest import SyncRequestBuilder
+from postgrest.types import Filters
 from supabase import Client, PostgrestAPIError, PostgrestAPIResponse
 
 from supasaas._logging.supabase_logger import supabase_logger as default_logger
@@ -114,7 +115,20 @@ class SupabaseDB:
             )
             return False
 
-    def _get_filter(
+    @staticmethod
+    def _validate_filter_params(match, match_type, filter_type) -> None:
+        """Helper to validate that filter params are passed together."""
+        if any([match, match_type, filter_type]) and not all([
+            match,
+            match_type,
+            filter_type,
+        ]):
+            raise ValueError(
+                "If any of 'match', 'match_type', or 'filter_type' is provided"
+                ", all three must be provided."
+            )
+
+    def _extract_filter(
         self,
         match: dict,
         *,
@@ -161,6 +175,53 @@ class SupabaseDB:
 
         match_name, match_value = next(iter(match.items()))
         return match_name, match_value
+
+    def _create_filter_condition(
+        self,
+        match: dict,
+        *,
+        expected_value_type: type,
+        filter_type: str,
+        action: str,
+        table_name: str,
+    ) -> tuple[str, str, Any]:
+        """
+        Create the filter tuple based on the filter type
+        """
+
+        self._validate_filter_params(match, expected_value_type, filter_type)
+        match_name, match_value = self._extract_filter(
+            match,
+            expected_value_type=expected_value_type,
+            action=action,
+            table_name=table_name,
+        )
+        filters: dict[str, tuple[str, str, Any]] = {
+            "eq": (match_name, Filters.EQ, match_value),
+            "neq": (match_name, Filters.NEQ, match_value),
+            "lte": (match_name, Filters.LTE, match_value),
+            "gte": (match_name, Filters.GTE, match_value),
+            "lt": (match_name, Filters.LT, match_value),
+            "gt": (match_name, Filters.GT, match_value),
+            "like": (match_name, Filters.LIKE, match_value),
+            "ilike": (match_name, Filters.ILIKE, match_value),
+            "in": (match_name, Filters.IN, match_value),
+            "is": (match_name, Filters.IS, match_value),
+            "contains": (match_name, Filters.CONTAINS, match_value),
+            "contained_by": (match_name, Filters.CONTAINED_BY, match_value),
+            "range_gt": (match_name, Filters.RANGE_GT, match_value),
+            "range_gte": (match_name, Filters.RANGE_GTE, match_value),
+            "range_lt": (match_name, Filters.RANGE_LT, match_value),
+            "range_lte": (match_name, Filters.RANGE_LTE, match_value),
+            "range_adjacent": (
+                match_name,
+                Filters.RANGE_ADJACENT,
+                match_value,
+            ),
+            "overlaps": (match_name, Filters.OVERLAPS, match_value),
+            "text_search": (match_name, Filters.TEXT_SEARCH, match_value),
+        }
+        return filters[filter_type]
 
     def insert_row(
         self, *, table_name: str, data: dict, use_service_role: bool = False
@@ -231,7 +292,7 @@ class SupabaseDB:
         """
         action: str = "delete"
         try:
-            match_name, match_value = self._get_filter(
+            match_name, match_value = self._extract_filter(
                 match,
                 expected_value_type=match_type,
                 action=action,
@@ -254,81 +315,6 @@ class SupabaseDB:
                 match=match,
             )
             return False
-
-    def select_row(
-        self,
-        *,
-        table_name: str,
-        match: dict,
-        match_type: type,
-        columns: list[str] | None = None,
-        use_service_role: bool = False,
-    ) -> list[dict]:
-        """
-        Retrieves a row or columns from a table based on a matching condition.
-
-        Args:
-            table_name (str): The name of the table to retrieve the row from.
-            match (dict): A dictionary representing the matching condition.
-            The key should be the column name and the value should be
-            the corresponding value to match.
-            match_type (type): The type of the value in the match dictionary.
-            columns (list[str], optional): A list of column names to retrieve
-                from the row. Defaults to None, which retrieves all columns.
-            use_service_role (bool, optional): Determines whether to use the
-                service role client or the default client. Service role client
-                should only be used for operations where there is no logged in
-                user. Otherwise use default client for RLS policy on
-                authenticated user. Defaults to False.
-
-        Returns:
-            List[dict]: A list of dictionaries representing the retrieved row
-                or rows. If no row is found matching the condition, an empty
-                dictionary is returned.
-        """
-        action = "select"
-        column_str = "*" if columns is None else ", ".join(columns)
-
-        try:
-            match_name, match_value = self._get_filter(
-                match,
-                expected_value_type=match_type,
-                action=action,
-                table_name=table_name,
-            )
-            response = self._execute_query(
-                use_service_role=use_service_role,
-                table_name=table_name,
-                query_func=lambda table: table.select(column_str).eq(
-                    match_name, match_value
-                ),
-            )
-            if not response.data:
-                self.log(level="info", action=action, response=response)
-                raise PostgrestAPIError({
-                    "message": f"Failed to select row into {table_name}"
-                })
-        except (PostgrestAPIError, ValueError, TypeError) as e:
-            self.log(
-                level="error",
-                exception=e,
-                action=action,
-                table_name=table_name,
-                column_str=column_str,
-                match=match,
-            )
-            return self.empty_value
-        if self._validate_response(
-            response.data,
-            expected_type=list,
-            action=action,
-            table_name=table_name,
-            column_str=column_str,
-            match=match,
-        ):
-            return response.data
-        else:
-            return self.empty_value
 
     def update_row(
         self,
@@ -364,7 +350,7 @@ class SupabaseDB:
         action: str = "update"
 
         try:
-            match_name, match_value = self._get_filter(
+            match_name, match_value = self._extract_filter(
                 match,
                 expected_value_type=match_type,
                 action=action,
@@ -393,7 +379,88 @@ class SupabaseDB:
             )
             return False
 
-    def find_row(
+    def select_row(
+        self,
+        *,
+        table_name: str,
+        match: dict | None = None,
+        match_type: type | None = None,
+        filter_type: str | None = None,
+        columns: list[str] | None = None,
+        use_service_role: bool = False,
+    ) -> list[dict]:
+        """
+        Retrieves a row or columns from a table based on a matching condition.
+
+        Args:
+            table_name (str): The name of the table to retrieve the row from.
+            match (dict): A dictionary representing the matching condition.
+            The key should be the column name and the value should be
+            the corresponding value to match.
+            match_type (type): The type of the value in the match dictionary.
+            columns (list[str], optional): A list of column names to retrieve
+                from the row. Defaults to None, which retrieves all columns.
+            use_service_role (bool, optional): Determines whether to use the
+                service role client or the default client. Service role client
+                should only be used for operations where there is no logged in
+                user. Otherwise use default client for RLS policy on
+                authenticated user. Defaults to False.
+
+        Returns:
+            List[dict]: A list of dictionaries representing the retrieved row
+                or rows. If no row is found matching the condition, an empty
+                dictionary is returned.
+        """
+        action = "select single"
+        column_str = "*" if columns is None else ", ".join(columns)
+
+        try:
+            match_name, filter_enum, match_value = (
+                self._create_filter_condition(
+                    match,
+                    expected_value_type=match_type,
+                    filter_type=filter_type,
+                    action=action,
+                    table_name=table_name,
+                )
+            )
+            response = (
+                self._execute_query(
+                    use_service_role=use_service_role,
+                    table_name=table_name,
+                    query_func=lambda table: table.select(column_str).filter(
+                        match_name, filter_enum, match_value
+                    ),
+                ),
+            )
+            if not response.data:
+                self.log(level="info", action=action, response=response)
+                raise PostgrestAPIError({
+                    "message": f"Failed to select row into {table_name}"
+                })
+        except (PostgrestAPIError, ValueError, TypeError) as e:
+            self.log(
+                level="error",
+                exception=e,
+                action=action,
+                table_name=table_name,
+                column_str=column_str,
+                match=match,
+            )
+            return self.empty_value
+        if self._validate_response(
+            response.data,
+            expected_type=list,
+            action=action,
+            table_name=table_name,
+            column_str=column_str,
+            match=match,
+        ):
+            return response.data
+        else:
+            return self.empty_value
+
+    def find_row_within_period(
         self,
         *,
         table_name: str,
@@ -422,37 +489,12 @@ class SupabaseDB:
         Returns:
             List[dict]: A list of dictionaries representing the retrieved row
         """
-        action: str = "find row"
-        column_str = "*" if columns is None else ", ".join(columns)
-
-        try:
-            response = self._execute_query(
-                use_service_role=use_service_role,
-                table_name=table_name,
-                query_func=lambda table: table.select(column_str).lte(
-                    match_column, within_period
-                ),
-            )
-        except PostgrestAPIError as e:
-            self.log(
-                level="error",
-                exception=e,
-                action=action,
-                table_name=table_name,
-                match_column=match_column,
-                within_period=within_period,
-                columns=columns,
-            )
-            return self.empty_value
-
-        if response.data and self._validate_response(
-            response.data,
-            expected_type=list,
-            action=action,
+        match = {match_column: within_period}
+        return self.select_row(
             table_name=table_name,
-            match_column=match_column,
-            within_period=within_period,
+            match=match,
+            expected_value_type=int,
+            filter_type="lte",
             columns=columns,
-        ):
-            return response.data
-        return self.empty_value
+            use_service_role=use_service_role,
+        )
