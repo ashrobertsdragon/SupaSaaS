@@ -207,19 +207,9 @@ class SupabaseDB:
             "ilike": (match_name, Filters.ILIKE, match_value),
             "in": (match_name, Filters.IN, match_value),
             "is": (match_name, Filters.IS, match_value),
-            "contains": (match_name, Filters.CONTAINS, match_value),
-            "contained_by": (match_name, Filters.CONTAINED_BY, match_value),
-            "range_gt": (match_name, Filters.RANGE_GT, match_value),
-            "range_gte": (match_name, Filters.RANGE_GTE, match_value),
-            "range_lt": (match_name, Filters.RANGE_LT, match_value),
-            "range_lte": (match_name, Filters.RANGE_LTE, match_value),
-            "range_adjacent": (
-                match_name,
-                Filters.RANGE_ADJACENT,
-                match_value,
-            ),
-            "overlaps": (match_name, Filters.OVERLAPS, match_value),
-            "text_search": (match_name, Filters.TEXT_SEARCH, match_value),
+            "contains": (match_name, Filters.CS, match_value),
+            "contained_by": (match_name, Filters.CD, match_value),
+            "overlaps": (match_name, Filters.OV, match_value),
         }
         return filters[filter_type]
 
