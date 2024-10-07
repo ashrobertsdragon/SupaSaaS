@@ -112,8 +112,8 @@ SupaSaaS includes built-in logging mechanisms for both informational and error l
 
 ## TODO
 
-1. Unit testing
-2. Improve documentation
+1. Update tests & automate tests
+2. Add methods to cover all of Supabase features
 
 ## Contributing
 
