@@ -1,6 +1,6 @@
 [project]
 name = "supasaas"
-version = "0.5.0"
+version = "0.6.0"
 description = "SupaSaaS is a Python library that provides an abstraction layer over the Supabase Python client library. It is designed to simplify common tasks such as user authentication, database operations, and error logging, specifically tailored for Software as a Service (SaaS) applications."
 readme = "README.md"
 authors = [{name = "Ashlynn Antrobus", email = "ashlynn@prosepal.io"}]

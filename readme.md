@@ -108,7 +108,7 @@ SupaSaaS requires several environment variables to be set for proper configurati
 
 ### Logging
 
-SupaSaaS includes built-in logging mechanisms for both informational and error logs. By default, logs are saved to .log files in the project root directory. You can customize the logging configuration by modifying the logging_config.py file.
+SupaSaaS includes built-in logging mechanisms for both informational and error logs. By default, logs are saved printed to screen, but other handlers are pre-configured and available if you install the optional loguru depdendency.
 
 ## TODO
 
